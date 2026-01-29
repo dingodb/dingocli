@@ -20,7 +20,6 @@ import (
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/cli/command/fs/config"
 	"github.com/dingodb/dingocli/cli/command/fs/quota"
-	"github.com/dingodb/dingocli/cli/command/fs/stats"
 	"github.com/dingodb/dingocli/cli/command/fs/subpath"
 	"github.com/dingodb/dingocli/cli/command/fs/warmup"
 	cliutil "github.com/dingodb/dingocli/internal/utils"
@@ -46,9 +45,9 @@ func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewFsMountCommand(dingocli),
 		config.NewFsCommand(dingocli),
 		quota.NewQuotaCommand(dingocli),
-		stats.NewStatsCommand(dingocli),
 		warmup.NewWarmupCommand(dingocli),
 		subpath.NewSubpathCommand(dingocli),
+		NewStatsCommand(dingocli),
 	)
 
 	return cmd

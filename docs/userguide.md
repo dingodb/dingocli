@@ -17,7 +17,6 @@ A tool for DingoFS
       - [fs query](#fs-query)
       - [fs usage](#fs-usage)
       - [fs stats](#fs-stats)
-        - [fs stats mountpoint](#fs-stats-mountpoint)
       - [fs quota](#fs-quota)
         - [fs quota set](#fs-quota-set)
         - [fs quota get](#fs-quota-get)
@@ -277,39 +276,38 @@ $ dingo fs usage --humanize
 +-------+-----------+---------+-------+
 ```
 
-### stats
-#### stats mountpoint
+#### fs stats
 
 show real time performance statistics of dingofs mountpoint
 
 Usage:
 
 ```shell
-dingo stats mountpoint MOUNTPOINT [OPTIONS]
+dingo fs stats MOUNTPOINT [OPTIONS]
 
 # normal
-dingo stats mountpoint /mnt/dingofs
+dingo fs stats /mnt/dingofs
 			
 # fuse metrics
-dingo stats mountpoint /mnt/dingofs --schema f
+dingo fs stats /mnt/dingofs --schema f
 
 # s3 metrics
-dingo stats mountpoint /mnt/dingofs --schema o
+dingo fs stats /mnt/dingofs --schema o
 
 # More metrics
-dingo stats mountpoint /mnt/dingofs --verbose
+dingo fs stats /mnt/dingofs --verbose
 
 # Show 3 times
-dingo stats mountpoint /mnt/dingofs --count 3
+dingo fs stats /mnt/dingofs --count 3
 
 # Show every 4 seconds
-dingo stats mountpoint /mnt/dingofs --interval 4s
+dingo fs stats /mnt/dingofs --interval 4s
 
 ```
 Output:
 
 ```shell
-dingo stats mountpoint /mnt/dingofs
+dingo fs stats /mnt/dingofs
 
 ------usage------ ----------fuse--------- ----blockcache--- ---object-- ------remotecache------
  cpu   mem   used| ops   lat   read write| load stage cache| get   put | load stage cache  hit 
