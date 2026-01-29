@@ -34,7 +34,7 @@ import (
 
 const (
 	CACHE_START_EXAMPLE = `Examples:
-   $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6`
+   $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6 --listen_ip=10.220.69.6`
 )
 
 type startOptions struct {
@@ -62,13 +62,24 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 			component, err := componentManager.GetActiveComponent(compmgr.DINGO_DACHE)
 			if err != nil {
 				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
-				component, err = componentManager.InstallComponent(compmgr.DINGO_DACHE, compmgr.LASTEST_VERSION)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_DACHE, compmgr.MAIN_VERSION)
 				if err != nil {
 					return fmt.Errorf("failed to install dingo-cache binary: %v", err)
 				}
 			}
 
 			options.cacheBinary = filepath.Join(component.Path, component.Name)
+
+			// check dingo-cache is exists
+			if !utils.IsFileExists(options.cacheBinary) {
+				return fmt.Errorf("%s not found, run dingo component install dingo-cache:[VERSION] to install.", options.cacheBinary)
+			}
+
+			// add execute permission
+			if err := utils.AddExecutePermission(options.cacheBinary); err != nil {
+				return fmt.Errorf("failed to add execute permission for %s,error: %v", options.cacheBinary, err)
+			}
+
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
@@ -79,20 +90,7 @@ func NewCacheStartCommand(dingocli *cli.DingoCli) *cobra.Command {
 				}
 			}
 
-			fmt.Printf("use dingo-cache binary: %s\n", options.cacheBinary)
-
-			// check dingo-cache is exists
-			if !utils.IsFileExists(options.cacheBinary) {
-				return fmt.Errorf("%s not found", options.cacheBinary)
-
-			}
-			// check has execute permission
-			if !utils.HasExecutePermission(options.cacheBinary) {
-				err := utils.AddExecutePermission(options.cacheBinary)
-				if err != nil {
-					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.cacheBinary, err)
-				}
-			}
+			fmt.Println(color.CyanString("use %s:%s(%s)\n", component.Name, component.Version, options.cacheBinary))
 
 			return runStart(cmd, dingocli, options)
 		},

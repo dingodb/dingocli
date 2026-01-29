@@ -58,6 +58,8 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 		DisableFlagParsing: true,
 		Example:            FS_MOUNT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			options.cmdArgs = args
+
 			componentManager, err := compmgr.NewComponentManager()
 			if err != nil {
 				return err
@@ -65,13 +67,22 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 			component, err := componentManager.GetActiveComponent(compmgr.DINGO_CLIENT)
 			if err != nil {
 				fmt.Printf("%s: %v\n", color.BlueString("[WARNING]"), err)
-				component, err = componentManager.InstallComponent(compmgr.DINGO_CLIENT, compmgr.LASTEST_VERSION)
+				component, err = componentManager.InstallComponent(compmgr.DINGO_CLIENT, compmgr.MAIN_VERSION)
 				if err != nil {
 					return fmt.Errorf("failed to install dingo-client binary: %v", err)
 				}
 			}
 
 			options.clientBinary = filepath.Join(component.Path, component.Name)
+
+			// check dingo-client is exists
+			if !utils.IsFileExists(options.clientBinary) {
+				return fmt.Errorf("%s not found, run dingo component install dingo-client:[VERSION] to install.", options.clientBinary)
+			}
+			// add execute permission
+			if err := utils.AddExecutePermission(options.clientBinary); err != nil {
+				return fmt.Errorf("failed to add execute permission for %s,error: %v", options.clientBinary, err)
+			}
 
 			// check flags
 			for _, arg := range args {
@@ -86,23 +97,9 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 			if len(args) < 2 {
 				return fmt.Errorf("\"dingocli fs mount\" requires exactly 2 arguments\n\nUsage: dingocli fs mount METAURL MOUNTPOINT [OPTIONS]")
 			}
-
-			fmt.Printf("use dingo-client binary: %s\n", options.clientBinary)
-
-			options.cmdArgs = args
 			options.mountpoint = args[1]
 
-			// check dingo-client is exists
-			if !utils.IsFileExists(options.clientBinary) {
-				return fmt.Errorf("%s not found", options.clientBinary)
-			}
-			// check has execute permission
-			if !utils.HasExecutePermission(options.clientBinary) {
-				err := utils.AddExecutePermission(options.clientBinary)
-				if err != nil {
-					return fmt.Errorf("failed to add execute permission for %s,error: %v", options.clientBinary, err)
-				}
-			}
+			fmt.Println(color.CyanString("use %s:%s(%s)\n", component.Name, component.Version, options.clientBinary))
 
 			return runMount(cmd, dingocli, options)
 		},
