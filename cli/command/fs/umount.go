@@ -34,7 +34,6 @@ const (
 
 type umountOptions struct {
 	mountpoint string
-	force      bool
 	lazy       bool
 }
 
@@ -47,17 +46,7 @@ func NewFsUmountCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Args:    utils.ExactArgs(1),
 		Example: FS_UMOUNT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
 			options.mountpoint = args[0]
-
-			options.force, err = cmd.Flags().GetBool("force")
-			if err != nil {
-				return err
-			}
-			options.lazy, err = cmd.Flags().GetBool("lazy")
-			if err != nil {
-				return err
-			}
 
 			return runUmuont(cmd, dingocli, options)
 		},
@@ -68,23 +57,16 @@ func NewFsUmountCommand(dingocli *cli.DingoCli) *cobra.Command {
 	utils.SetFlagErrorFunc(cmd)
 
 	// add flags
-	cmd.Flags().BoolP("force", "f", false, "Force umount")
-	cmd.Flags().BoolP("lazy", "l", false, "Lazy umount")
+	cmd.Flags().BoolVarP(&options.lazy, "lazy", "l", false, "Lazy umount")
 
 	return cmd
 }
 
 func runUmuont(cmd *cobra.Command, dingocli *cli.DingoCli, options umountOptions) error {
 	flags := 0
-	if options.lazy && options.force {
-		return fmt.Errorf("lazy and force options cannot be used simultaneously")
-	}
 
 	if options.lazy {
 		flags = syscall.MNT_DETACH
-	}
-	if options.force {
-		flags = syscall.MNT_FORCE
 	}
 
 	if _, err := os.Stat(options.mountpoint); os.IsNotExist(err) {
@@ -98,12 +80,12 @@ func runUmuont(cmd *cobra.Command, dingocli *cli.DingoCli, options umountOptions
 			return fmt.Errorf("invalid mountpoint: %s", options.mountpoint)
 		case err == syscall.EPERM:
 			// use fusermount3  to umount
-			umountErr := runFuseumount(options.mountpoint)
+			umountErr := runFuseumount(options)
 			if umountErr != nil {
 				return fmt.Errorf("error unmounting: %v", umountErr)
 			}
 		case err == syscall.EBUSY:
-			return fmt.Errorf("mountpoint %s is busy, try lazy unmount or check processes", options.mountpoint)
+			return fmt.Errorf("mountpoint %s is busy, try umount with lazy option", options.mountpoint)
 		case err == syscall.ENOENT:
 			return fmt.Errorf("mountpoint %s does not exist", options.mountpoint)
 		default:
@@ -116,11 +98,14 @@ func runUmuont(cmd *cobra.Command, dingocli *cli.DingoCli, options umountOptions
 	return nil
 }
 
-func runFuseumount(mountpoint string) error {
+func runFuseumount(options umountOptions) error {
 
 	var oscmd *exec.Cmd
 
-	args := []string{"-u", mountpoint}
+	args := []string{"-u", options.mountpoint}
+	if options.lazy {
+		args = append(args, "-z")
+	}
 	oscmd = exec.Command("fusermount3", args...)
 	oscmd.Stderr = os.Stderr
 	oscmd.Stdout = os.Stdout
