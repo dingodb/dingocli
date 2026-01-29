@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package stats
+package fs
 
 import (
 	"fmt"
@@ -37,7 +37,7 @@ import (
 
 const (
 	STATS_MOUNTPOINT_EXAMPLE = `Examples:
-   $ dingo stats mountpoint /mnt/dingofs`
+   $ dingo fs stats /mnt/dingofs`
 )
 
 // colors
@@ -98,7 +98,7 @@ type statsWatcher struct {
 	count      uint32
 }
 
-type mountpointOptions struct {
+type statsOptions struct {
 	mountpoint string
 	schema     string
 	interval   time.Duration
@@ -111,37 +111,18 @@ func init() {
 	output.SetShow(true)
 }
 
-func NewStatsMountpointCommand(dingocli *cli.DingoCli) *cobra.Command {
-	var options mountpointOptions
+func NewStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
+	var options statsOptions
 
 	cmd := &cobra.Command{
-		Use:     "mountpoint MOUNTPOINT [OPTIONS]",
+		Use:     "stats MOUNTPOINT [OPTIONS]",
 		Short:   "show real time performance statistics of mountpoint",
 		Args:    utils.ExactArgs(1),
 		Example: STATS_MOUNTPOINT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			var err error
-
 			options.mountpoint = args[0]
 
-			options.schema, err = cmd.Flags().GetString("schema")
-			if err != nil {
-				return err
-			}
-			options.interval, err = cmd.Flags().GetDuration("interval")
-			if err != nil {
-				return err
-			}
-			options.count, err = cmd.Flags().GetUint32("count")
-			if err != nil {
-				return err
-			}
-			options.verbose, err = cmd.Flags().GetBool("verbose")
-			if err != nil {
-				return err
-			}
-
-			return runMountpoint(cmd, dingocli, options)
+			return runStats(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -150,17 +131,17 @@ func NewStatsMountpointCommand(dingocli *cli.DingoCli) *cobra.Command {
 	utils.SetFlagErrorFunc(cmd)
 
 	// add flags
-	cmd.Flags().DurationP("interval", "i", 1*time.Second, "Interval time for every output")
-	cmd.Flags().String("schema", "ufbor", `Schema string that controls the output sections (u: usage, f: fuse, b: blockcache, o: object, r:remotecache) (default "ufbor")"`)
-	cmd.Flags().Uint32P("count", "c", 0, "Max outout count(0 is unlimited)")
-	cmd.Flags().BoolP("verbose", "v", false, "Show more info")
+	cmd.Flags().DurationVarP(&options.interval, "interval", "i", 1*time.Second, "Interval time for every output")
+	cmd.Flags().StringVar(&options.schema, "schema", "ufbor", `Schema string that controls the output sections (u: usage, f: fuse, b: blockcache, o: object, r:remotecache) (default "ufbor")"`)
+	cmd.Flags().Uint32VarP(&options.count, "count", "c", 0, "Max outout count(0 is unlimited)")
+	cmd.Flags().BoolVarP(&options.verbose, "verbose", "v", false, "Show more info")
 
 	return cmd
 }
 
-func runMountpoint(cmd *cobra.Command, dingocli *cli.DingoCli, options mountpointOptions) error {
+func runStats(cmd *cobra.Command, dingocli *cli.DingoCli, options statsOptions) error {
 
-	realTimeStats(options.mountpoint, options.schema, options.verbose, options.interval, options.count)
+	realTimeStats(options)
 
 	return nil
 }
@@ -451,23 +432,23 @@ func (w *statsWatcher) printDiff(left, right map[string]float64, dark bool) {
 }
 
 // real time read metric data and show in client
-func realTimeStats(mountPoint string, schema string, verbose bool, duration time.Duration, count uint32) {
-	inode, err := utils.GetFileInode(mountPoint)
+func realTimeStats(options statsOptions) {
+	inode, err := utils.GetFileInode(options.mountpoint)
 	if err != nil {
 		log.Fatalf("run stats failed, %s", err)
 	}
 	if inode != 1 {
-		log.Fatalf("path %s is not a mount point", mountPoint)
+		log.Fatalf("invalid dingofs mountpoint: %s", options.interval)
 	}
 	watcher := &statsWatcher{
 		colorful:   isatty.IsTerminal(os.Stdout.Fd()),
-		duration:   duration,
-		mountPoint: mountPoint,
-		interval:   int64(duration) / 1000000000,
+		duration:   options.interval,
+		mountPoint: options.mountpoint,
+		interval:   int64(options.interval) / 1000000000,
 		cpuUsage:   0.0,
-		count:      count,
+		count:      options.count,
 	}
-	watcher.buildSchema(schema, verbose)
+	watcher.buildSchema(options.schema, options.verbose)
 	watcher.formatHeader()
 
 	var tick uint
