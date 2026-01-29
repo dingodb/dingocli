@@ -107,25 +107,28 @@ func IsFileExists(filepath string) bool {
 	return true
 }
 
-func HasExecutePermission(filepath string) bool {
+func HasExecutePermission(filepath string) (bool, error) {
 	fileInfo, err := os.Stat(filepath)
 	if err != nil {
-		return false
+		return false, err
 	}
-	mode := fileInfo.Mode()
-	return mode&0111 != 0
+
+	return fileInfo.Mode().Perm()&0100 != 0, nil
 }
 
 func AddExecutePermission(filepath string) error {
+	if ok, err := HasExecutePermission(filepath); err != nil || ok {
+		return err
+	}
+
 	fileInfo, err := os.Stat(filepath)
 	if err != nil {
 		return err
 	}
 	currentMode := fileInfo.Mode()
 
-	newMode := currentMode | 0111
+	newMode := currentMode | 0100
 
-	fileInfo.Mode().Perm()
 	return os.Chmod(filepath, newMode)
 }
 
