@@ -39,6 +39,7 @@ const (
 	GRAFANA_CONTAINER_PATH         = "/etc/grafana/grafana.ini"
 	DASHBOARD_CONTAINER_PATH       = "/etc/grafana/provisioning/dashboards"
 	GRAFANA_DATA_SOURCE_PATH       = "/etc/grafana/provisioning/datasources/all.yml"
+	DINGO_TOOL_ROOT_DIR            = "/root/.dingo"
 	DINGO_TOOL_SRC_PATH            = "/dingofs/conf/dingo.yaml"
 	DINGO_TOOL_DEST_PATH           = "/root/.dingo/dingo.yaml"
 	ORIGIN_MONITOR_PATH            = "/dingofs/monitor"
@@ -191,9 +192,17 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*t
 			return nil, err
 		}
 
+		// init /root/.dingo dir in container
+		t.AddStep(&step.CreateAndUploadDir{
+			HostDirName:       ".dingo",
+			ContainerDestId:   &containerId,
+			ContainerDestPath: DINGO_TOOL_ROOT_DIR,
+			ExecOptions:       dingocli.ExecOptions(),
+		})
+
 		t.AddStep(&step.TrySyncFile{ // sync dingocli config
 			ContainerSrcId:    &confContainerId,
-			ContainerSrcPath:  DINGO_TOOL_DEST_PATH,
+			ContainerSrcPath:  DINGO_TOOL_SRC_PATH,
 			ContainerDestId:   &containerId,
 			ContainerDestPath: DINGO_TOOL_DEST_PATH,
 			KVFieldSplit:      common.CONFIG_DELIMITER_COLON,

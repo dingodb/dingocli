@@ -47,6 +47,9 @@ jobs:
       - name: Build binary
         run: |
           make build
+          commitId="${{ github.sha }}"
+          shortCommitId=${commitId:0:7}
+          echo "${shortCommitId}" > bin/commit_id
 
       - name: Release
         uses: softprops/action-gh-release@v2
@@ -54,6 +57,7 @@ jobs:
         with:
           files: |
             bin/dingo
+            bin/commit_id
           name: ${{ env.BRANCH_NAME }}
           tag_name: ${{ env.TAG_NAME }}
           token: ${{ secrets.GH_TOKEN }}
