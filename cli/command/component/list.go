@@ -86,7 +86,7 @@ func runList(cmd *cobra.Command, dingocli *cli.DingoCli, options listOptions) er
 	return FormatOutput(components, options)
 }
 
-func FormatOutput(components []component.Component, options listOptions) error {
+func FormatOutput(components []*component.Component, options listOptions) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	if options.verbose {
 		fmt.Fprintln(w, "Name\tVersion\tInstalled\tRelease\tCommit\tActive\tPath")
@@ -101,7 +101,7 @@ func FormatOutput(components []component.Component, options listOptions) error {
 			continue
 		}
 
-		installText := utils.Ternary(comp.IsInstalled, "Yes", "")
+		installText := utils.Ternary(comp.IsInstalled, fmt.Sprintf("Yes%s", utils.Ternary(comp.Updatable, "(U)", "")), "")
 		activeText := utils.Ternary(comp.IsInstalled && comp.IsActive, "Yes", "")
 
 		if options.verbose {

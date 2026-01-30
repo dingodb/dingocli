@@ -23,8 +23,8 @@ func init() {
 type ComponentManager struct {
 	rootDir       string
 	installedFile string
-	installed     []Component
-	avaliable     []Component
+	installed     []*Component
+	avaliable     []*Component
 	repodata      map[string]*BinaryRepoData
 	mirror        string
 }
@@ -60,8 +60,8 @@ func NewComponentManager() (*ComponentManager, error) {
 	return ComponentManager, nil
 }
 
-func (cm *ComponentManager) LoadInstalledComponents() ([]Component, error) {
-	var components []Component
+func (cm *ComponentManager) LoadInstalledComponents() ([]*Component, error) {
+	var components []*Component
 	if _, err := os.Stat(cm.installedFile); os.IsNotExist(err) {
 		return components, nil
 	}
@@ -79,8 +79,8 @@ func (cm *ComponentManager) LoadInstalledComponents() ([]Component, error) {
 	return cm.installed, nil
 }
 
-func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Component, error) {
-	var components []Component
+func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]*Component, error) {
+	var components []*Component
 
 	repodata, exists := cm.repodata[name]
 	if !exists {
@@ -88,7 +88,7 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 	}
 
 	for tagname, branch := range repodata.GetTags() {
-		components = append(components, Component{
+		components = append(components, &Component{
 			Name:     name,
 			Version:  tagname,
 			Commit:   branch.Commit,
@@ -101,7 +101,7 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 
 	main, ok := repodata.GetMain()
 	if ok {
-		components = append(components, Component{
+		components = append(components, &Component{
 			Name:     name,
 			Version:  MAIN_VERSION,
 			Commit:   main.Commit,
@@ -115,8 +115,8 @@ func (cm *ComponentManager) LoadAvailableComponentVersions(name string) ([]Compo
 	return components, nil
 }
 
-func (cm *ComponentManager) LoadAvailableComponents() ([]Component, error) {
-	var components []Component
+func (cm *ComponentManager) LoadAvailableComponents() ([]*Component, error) {
+	var components []*Component
 
 	for _, name := range ALL_COMPONENTS {
 		comps, err := cm.LoadAvailableComponentVersions(name)
@@ -209,7 +209,7 @@ func (cm *ComponentManager) installOrUpdateComponent(name, version string, isUpd
 		}
 	}
 
-	newComponent := Component{
+	newComponent := &Component{
 		Name:        name,
 		Version:     foundVersion,
 		Commit:      binaryDetail.Commit,
@@ -243,7 +243,7 @@ func (cm *ComponentManager) installOrUpdateComponent(name, version string, isUpd
 		return nil, err
 	}
 
-	return &newComponent, cm.SaveInstalledComponents()
+	return newComponent, cm.SaveInstalledComponents()
 }
 
 func (cm *ComponentManager) SetDefaultVersion(name, version string) error {
@@ -268,7 +268,7 @@ func (cm *ComponentManager) SetDefaultVersion(name, version string) error {
 }
 
 func (cm *ComponentManager) RemoveComponent(name, version string, force bool, saveToFile bool) error {
-	var newComponents []Component
+	var newComponents []*Component
 	var filename string
 
 	for _, comp := range cm.installed {
@@ -297,9 +297,9 @@ func (cm *ComponentManager) RemoveComponent(name, version string, force bool, sa
 	return nil
 }
 
-func (cm *ComponentManager) RemoveComponents(name string, saveToFile bool) ([]Component, error) {
-	var newComponents []Component
-	var removedComponents []Component
+func (cm *ComponentManager) RemoveComponents(name string, saveToFile bool) ([]*Component, error) {
+	var newComponents []*Component
+	var removedComponents []*Component
 
 	for _, comp := range cm.installed {
 		if !(comp.Name == name) {
@@ -329,23 +329,25 @@ func (cm *ComponentManager) RemoveComponents(name string, saveToFile bool) ([]Co
 func (cm *ComponentManager) GetActiveComponent(name string) (*Component, error) {
 	for _, comp := range cm.installed {
 		if comp.Name == name && comp.IsActive {
-			return &comp, nil
+			return comp, nil
 		}
 	}
 
 	return nil, fmt.Errorf("no active version for component %s", name)
 }
 
-func (cm *ComponentManager) ListComponents() ([]Component, error) {
-	allComponents := cm.installed
-
+func (cm *ComponentManager) ListComponents() ([]*Component, error) {
+	allComponents := make([]*Component, 0)
 	for _, availableComp := range cm.avaliable {
 		if cm.IsInstalled(availableComp.Name, availableComp.Version) {
+			cm.UpdateState(availableComp.Name, availableComp.Version, availableComp.Release)
 			continue
 		}
 
 		allComponents = append(allComponents, availableComp)
 	}
+
+	allComponents = append(allComponents, cm.installed...)
 
 	return allComponents, nil
 }
@@ -353,7 +355,7 @@ func (cm *ComponentManager) ListComponents() ([]Component, error) {
 func (cm *ComponentManager) FindInstallComponent(name string, version string) (*Component, error) {
 	for _, comp := range cm.installed {
 		if comp.Name == name && comp.Version == version {
-			return &comp, nil
+			return comp, nil
 		}
 	}
 
@@ -366,5 +368,17 @@ func (cm *ComponentManager) IsInstalled(name, version string) bool {
 			return true
 		}
 	}
+	return false
+}
+
+// update component whether is updatable
+func (cm *ComponentManager) UpdateState(name, version, release string) bool {
+	for _, comp := range cm.installed {
+		if comp.Name == name && comp.Version == version {
+			comp.Updatable = release > comp.Release
+			return comp.Updatable
+		}
+	}
+
 	return false
 }
