@@ -43,4 +43,5 @@ type Component struct {
 	Release     string `json:"release"`
 	Path        string `json:"path"`
 	URL         string `json:"url"`
+	Updatable   bool   `json:"-"`
 }
