@@ -33,7 +33,7 @@ import (
 
 const (
 	URL_LATEST_VERSION   = "https://github.com/dingodb/dingocli/releases/download/main/commit_id" // TODO replace url
-	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingocli/master/scripts/install_dingocli.sh"
+	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingocli.sh"
 	ENV_DINGOADM_UPGRADE = "DINGOADM_UPGRADE"
 	ENV_DINGOADM_VERSION = "DINGOADM_VERSION"
 )
