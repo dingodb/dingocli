@@ -76,16 +76,21 @@ func runInstall(cmd *cobra.Command, dingocli *cli.DingoCli, options *installOpti
 	}
 
 	var installed []string
+	var errors []error
+
 	for _, comp := range options.components {
 		name, version := component.ParseComponentVersion(comp)
 		if comp, err := componentManager.InstallComponent(name, utils.Ternary(version == "", component.LASTEST_VERSION, version)); err != nil {
+			errors = append(errors, err)
 			fmt.Println(color.GreenString("%s", err.Error()))
 		} else {
 			installed = append(installed, fmt.Sprintf("%s:%s", comp.Name, comp.Version))
 		}
 	}
 
-	fmt.Printf("Successfully install components %s ^_^!\n", installed)
+	if len(errors) == 0 {
+		fmt.Printf("Successfully install components %s ^_^!\n", installed)
+	}
 
 	return nil
 }
