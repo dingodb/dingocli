@@ -99,7 +99,7 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			options.mountpoint = args[1]
 
-			fmt.Println(color.CyanString("use %s:%s(%s)\n", component.Name, component.Version, options.clientBinary))
+			fmt.Println(color.CyanString("use %s:%s(%s)", component.Name, component.Version, options.clientBinary))
 
 			return runMount(cmd, dingocli, options)
 		},
@@ -147,35 +147,31 @@ func runMount(cmd *cobra.Command, dingocli *cli.DingoCli, options mountOptions) 
 		ticker := time.NewTicker(1 * time.Second)
 		defer ticker.Stop()
 
+		mountTimeout := time.After(10 * time.Second)
+
 		for range ticker.C {
-			if _, err := os.Stat(filename); !os.IsNotExist(err) {
+			if _, err := os.Stat(filename); err != nil {
 				select {
-				case isReady <- true:
-				case <-time.After(120 * time.Second):
+				case <-mountTimeout:
 					isTimeout <- true
+					return
 				default:
 					continue
 				}
-				return
+			} else {
+				isReady <- true
 			}
 		}
 	}()
 
+	defer func() { oscmd.Wait() }()
+
 	select {
 	case <-isReady: // start success
-		// continues to read the remaining output
-		go func() {
-			// wait daemon exit, non block
-			go oscmd.Wait()
-		}()
-
 		fmt.Printf("Successfully mounted at %s\n", options.mountpoint)
 		return nil
 
 	case _ = <-isTimeout: //mount failed
-		//umount fs
-		tmpOptions := umountOptions{mountpoint: options.mountpoint}
-		runUmuont(cmd, dingocli, tmpOptions)
 		return fmt.Errorf("Failed mount at %s\n", options.mountpoint)
 	}
 }
