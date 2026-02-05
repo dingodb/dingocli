@@ -70,15 +70,27 @@ func NewWarmupQueryCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) error {
 
+	var warmErrors int64 = 0
+	var finished int64 = 0
+	var total int64 = 0
+	var err error
+
 	logger.Infof("query warmup progress, file: %s", options.path)
 	filename := filepath.Base(options.path)
 
-	var bar *progressbar.ProgressBar
+	total, _, _, err = getWarmupProgress(options.path)
+	if err != nil {
+		return err
+	}
 
-	bar = progressbar.NewOptions64(1,
+	if total == 0 {
+		fmt.Println("warmup not started or just finished")
+		return nil
+	}
+
+	var bar *progressbar.ProgressBar = progressbar.NewOptions64(total,
 		progressbar.OptionSetDescription("[cyan]Warmup[reset] "+filename+"..."),
 		progressbar.OptionShowCount(),
-		progressbar.OptionShowIts(),
 		progressbar.OptionSpinnerType(14),
 		progressbar.OptionFullWidth(),
 		progressbar.OptionThrottle(65*time.Millisecond),
@@ -95,44 +107,14 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 			BarEnd:        "]",
 		}))
 
-	var warmErrors int64 = 0
-	var finished int64 = 0
-	var total int64 = 0
-	var resultStr string
-	var max int64
-
 	for {
-		// result data format [finished/total/errors]
-		logger.Infof("get warmup xattr")
-		result, err := xattr.Get(options.path, DINGOFS_WARMUP_OP_XATTR)
+		total, finished, warmErrors, err = getWarmupProgress(options.path)
 		if err != nil {
 			return err
 		}
-		resultStr = string(result)
-
-		logger.Infof("warmup xattr: [%s],[total/finished/errors]", resultStr)
-		strs := strings.Split(resultStr, "/")
-		if len(strs) != 3 {
-			return fmt.Errorf("response data format error, should be [finished/total/errors]")
-		}
-		total, err = strconv.ParseInt(strs[0], 10, 64)
-		if err != nil {
-			break
-		}
-		finished, err = strconv.ParseInt(strs[1], 10, 64)
-		if err != nil {
-			break
-		}
-		warmErrors, err = strconv.ParseInt(strs[2], 10, 64)
-		if err != nil {
-			break
-		}
-
-		bar.ChangeMax64(total)
 
 		logger.Infof("warmup result: total[%d], finished[%d], errors[%d]", total, finished, warmErrors)
 		if total == 0 { //finished
-			bar.Set64(max)
 			break
 		}
 
@@ -148,4 +130,37 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 	bar.Finish()
 
 	return nil
+}
+
+func getWarmupProgress(path string) (int64, int64, int64, error) {
+	// result data format [finished/total/errors]
+	logger.Infof("get warmup xattr")
+	result, err := xattr.Get(path, DINGOFS_WARMUP_OP_XATTR)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+	resultStr := string(result)
+
+	logger.Infof("warmup xattr: [%s],[total/finished/errors]", resultStr)
+	strs := strings.Split(resultStr, "/")
+	if len(strs) != 3 {
+		return 0, 0, 0, fmt.Errorf("response data format error, should be [finished/total/errors]")
+	}
+	total, err := strconv.ParseInt(strs[0], 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	finished, err := strconv.ParseInt(strs[1], 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+
+	}
+	warmErrors, err := strconv.ParseInt(strs[2], 10, 64)
+	if err != nil {
+		return 0, 0, 0, err
+
+	}
+
+	return total, finished, warmErrors, nil
 }
