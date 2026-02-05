@@ -75,7 +75,7 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 
 	var bar *progressbar.ProgressBar
 
-	bar = progressbar.NewOptions64(100,
+	bar = progressbar.NewOptions64(1,
 		progressbar.OptionSetDescription("[cyan]Warmup[reset] "+filename+"..."),
 		progressbar.OptionShowCount(),
 		progressbar.OptionShowIts(),
@@ -95,10 +95,11 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 			BarEnd:        "]",
 		}))
 
-	var warmErrors uint64 = 0
-	var finished uint64 = 0
-	var total uint64 = 0
+	var warmErrors int64 = 0
+	var finished int64 = 0
+	var total int64 = 0
 	var resultStr string
+	var max int64
 
 	for {
 		// result data format [finished/total/errors]
@@ -109,44 +110,41 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 		}
 		resultStr = string(result)
 
-		logger.Infof("warmup xattr: [%s],[finished/total/errors]", resultStr)
+		logger.Infof("warmup xattr: [%s],[total/finished/errors]", resultStr)
 		strs := strings.Split(resultStr, "/")
 		if len(strs) != 3 {
 			return fmt.Errorf("response data format error, should be [finished/total/errors]")
 		}
-		finished, err = strconv.ParseUint(strs[0], 10, 64)
+		total, err = strconv.ParseInt(strs[0], 10, 64)
 		if err != nil {
 			break
 		}
-		total, err = strconv.ParseUint(strs[1], 10, 64)
+		finished, err = strconv.ParseInt(strs[1], 10, 64)
 		if err != nil {
 			break
 		}
-		warmErrors, err = strconv.ParseUint(strs[2], 10, 64)
+		warmErrors, err = strconv.ParseInt(strs[2], 10, 64)
 		if err != nil {
 			break
 		}
+
+		bar.ChangeMax64(total)
 
 		logger.Infof("warmup result: total[%d], finished[%d], errors[%d]", total, finished, warmErrors)
-		if (finished + warmErrors) == total {
-			bar.Set64(100)
+		if total == 0 { //finished
+			bar.Set64(max)
 			break
 		}
 
-		//bar.ChangeMax64(int64(total))
-		finishedPercent := (float64(finished) / float64(total)) * 100
-		bar.Set64(int64(finishedPercent))
+		bar.Set64(finished + warmErrors)
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(200 * time.Millisecond)
 	}
+
 	if warmErrors > 0 { //warmup failed
 		fmt.Println(color.RedString("\nwarmup finished,%d errors\n", warmErrors))
 	}
 
-	if total > 0 { //current warmup finished,last time warmup finished total will be 0
-		bar.ChangeMax64(int64(total))
-		bar.Set64(int64(total))
-	}
 	bar.Finish()
 
 	return nil
