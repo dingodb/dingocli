@@ -23,7 +23,6 @@ import (
 	"github.com/dingodb/dingocli/internal/component"
 	compmgr "github.com/dingodb/dingocli/internal/component"
 	"github.com/dingodb/dingocli/internal/utils"
-	"github.com/fatih/color"
 
 	"github.com/spf13/cobra"
 )
@@ -82,7 +81,7 @@ func runInstall(cmd *cobra.Command, dingocli *cli.DingoCli, options *installOpti
 		name, version := component.ParseComponentVersion(comp)
 		if comp, err := componentManager.InstallComponent(name, utils.Ternary(version == "", component.LASTEST_VERSION, version)); err != nil {
 			errors = append(errors, err)
-			fmt.Println(color.GreenString("%s", err.Error()))
+			fmt.Println(err.Error())
 		} else {
 			installed = append(installed, fmt.Sprintf("%s:%s", comp.Name, comp.Version))
 		}

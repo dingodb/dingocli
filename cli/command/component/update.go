@@ -80,9 +80,9 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 		if err != nil {
 			switch {
 			case errors.Is(err, component.ErrAlreadyLatest):
-				return fmt.Errorf("%s:%s already with latest build: %s, commit: %s\n", name, comp.Version, comp.Release, comp.Commit)
+				return fmt.Errorf("%s:%s already with latest build: %s, commit: %s", name, comp.Version, comp.Release, comp.Commit)
 			case errors.Is(err, component.ErrAlreadyExist):
-				return fmt.Errorf("%s:%s already installed\n", name, comp.Version)
+				return fmt.Errorf("%s:%s already installed", name, comp.Version)
 			default:
 				return fmt.Errorf("update component %s:%s failed: %w", name, version, err)
 			}
@@ -91,6 +91,7 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 		return nil
 	}
 
+	var errors []error
 	if options.all {
 		installed, err := componentManager.LoadInstalledComponents()
 		if err != nil {
@@ -102,7 +103,8 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 
 		for _, comp := range installed {
 			if err := updateFunc(comp.Name, comp.Version); err != nil {
-				return err
+				errors = append(errors, err)
+				fmt.Println(err.Error())
 			}
 		}
 	} else {
@@ -111,11 +113,15 @@ func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOption
 
 			targetVersion := utils.Ternary(version == "", component.LASTEST_VERSION, version)
 			if err := updateFunc(name, targetVersion); err != nil {
-				return err
+				errors = append(errors, err)
+				fmt.Println(err.Error())
 			}
 		}
 	}
 
-	fmt.Println("Updated successfully ^_^!")
+	if len(errors) == 0 {
+		fmt.Println("Updated successfully ^_^!")
+	}
+
 	return nil
 }
