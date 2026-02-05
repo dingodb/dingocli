@@ -47,6 +47,7 @@ type addOptions struct {
 	filepath string
 	daemon   bool
 	single   bool
+	filelist string
 }
 
 func NewWarmupAddCommand(dingocli *cli.DingoCli) *cobra.Command {
@@ -58,14 +59,11 @@ func NewWarmupAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Args:    utils.RequiresMaxArgs(1),
 		Example: WARMUP_ADD_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			options.daemon = utils.GetBoolFlag(cmd, utils.DINGOFS_DAEMON)
 
-			filelist := utils.GetStringFlag(cmd, utils.DINGOFS_FILELIST)
-
-			if filelist == "" && len(args) == 0 {
+			if options.filelist == "" && len(args) == 0 {
 				return fmt.Errorf("no warmup file is specified")
-			} else if filelist != "" {
-				options.filepath = filelist
+			} else if options.filelist != "" {
+				options.filepath = options.filelist
 				options.single = false
 
 			} else {
@@ -84,8 +82,8 @@ func NewWarmupAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	utils.SetFlagErrorFunc(cmd)
 
 	// add flags
-	utils.AddBoolFlag(cmd, utils.DINGOFS_DAEMON, "Run in background")
-	utils.AddStringFlag(cmd, utils.DINGOFS_FILELIST, "Full path of file, save the files(dir) to warmup, and should be in dingofs")
+	cmd.Flags().StringVar(&options.filelist, "filelist", "", `Full path of file, save the files(dir) to warmup, and should be in dingofs"`)
+	cmd.Flags().BoolVarP(&options.daemon, "daemon", "d", false, "Run in background")
 
 	return cmd
 }
@@ -157,7 +155,7 @@ func runAdd(cmd *cobra.Command, dingocli *cli.DingoCli, options addOptions) erro
 		}
 		runQuery(cmd, dingocli, options)
 	} else {
-		fmt.Printf("Successfully run warmup in background, you can run \"dingocli warmup query %s\" to query progress\n", options.filepath)
+		fmt.Printf("Successfully run warmup in background, you can run \"dingo fs warmup query %s\" to query progress\n", options.filepath)
 	}
 
 	return nil
