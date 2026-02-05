@@ -35,9 +35,6 @@ const (
 
 	CONFIG_DEFAULT_ENV_FILE = "/etc/profile"
 	STORE_BUILD_BIN_DIR     = "/opt/dingo-store/build/bin"
-
-	// dingo.yaml config keys
-	DINGOCLI_KEY_MDS_ADDR = "mdsaddr"
 )
 
 func NewMutate(dc *topology.DeployConfig, delimiter string, forceRender bool) step.Mutate {
@@ -70,7 +67,7 @@ func NewMutate(dc *topology.DeployConfig, delimiter string, forceRender bool) st
 			value = v
 		}
 
-		if muteKey == DINGOCLI_KEY_MDS_ADDR {
+		if muteKey == comm.DINGOCLI_KEY_MDS_ADDR {
 			// special handle for mdsaddr config
 			value, err = dc.GetVariables().Get(comm.KEY_ENV_MDS_ADDR)
 		} else {
