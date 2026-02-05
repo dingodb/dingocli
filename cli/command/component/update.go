@@ -56,6 +56,10 @@ func NewUpdateCommand(dingocli *cli.DingoCli) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.components = args
 
+			if !options.all && len(options.components) == 0 {
+				return errors.New("no component specified")
+			}
+
 			return runUpdate(cmd, dingocli, &options)
 		},
 		SilenceUsage:          false,
