@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	REMOVE_ADD_EXAMPLE = `Examples:
-   $ dingo export remove /mnt/dingofs/export`
+	NFS_REMOVE_EXAMPLE = `Examples:
+   $ dingo nfs remove /mnt/dingofs/export`
 )
 
 type removeOptions struct {
@@ -45,7 +45,7 @@ func NewNFSRemoveCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Use:     "remove PATH",
 		Short:   "remove nfs-ganesha export",
 		Args:    utils.ExactArgs(1),
-		Example: REMOVE_ADD_EXAMPLE,
+		Example: NFS_REMOVE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.exportPath = args[0]
 

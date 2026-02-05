@@ -31,8 +31,8 @@ import (
 )
 
 const (
-	EXPORT_ADD_EXAMPLE = `Examples:
-   $ dingo export add /mnt/dingofs/export --conf "*(Access_Type=RW,Protocols=3:4,Squash=no_root_squash)"`
+	NFS_ADD_EXAMPLE = `Examples:
+   $ dingo nfs add /mnt/dingofs/export --conf "*(Access_Type=RW,Protocols=3:4,Squash=no_root_squash)"`
 )
 
 const (
@@ -79,15 +79,10 @@ var (
 )
 
 type addOptions struct {
-	//sshClient   *module.SSHClient
 	shell       *module.Shell
 	execOptions module.ExecOptions
 	exportPath  string
 	exportConf  string
-	// host        string
-	// port        uint32
-	// key         string
-	// user        string
 }
 
 func NewNFSAddCommand(dingocli *cli.DingoCli) *cobra.Command {
@@ -97,7 +92,7 @@ func NewNFSAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Use:     "add PATH [OPTIONS]",
 		Short:   "add nfs-ganesha export",
 		Args:    utils.ExactArgs(1),
-		Example: EXPORT_ADD_EXAMPLE,
+		Example: NFS_ADD_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			options.exportPath = args[0]
 
@@ -106,22 +101,6 @@ func NewNFSAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// options.host, err = cmd.Flags().GetString("ssh.host")
-			// if err != nil {
-			// 	return err
-			// }
-			// options.port, err = cmd.Flags().GetUint32("ssh.port")
-			// if err != nil {
-			// 	return err
-			// }
-			// options.key, err = cmd.Flags().GetString("ssh.key")
-			// if err != nil {
-			// 	return err
-			// }
-			// options.user, err = cmd.Flags().GetString("ssh.user")
-			// if err != nil {
-			// 	return err
-			// }
 
 			return runAdd(cmd, dingocli, &options)
 		},
@@ -130,12 +109,6 @@ func NewNFSAddCommand(dingocli *cli.DingoCli) *cobra.Command {
 	}
 
 	utils.SetFlagErrorFunc(cmd)
-
-	// add flags
-	// cmd.Flags().String("ssh.host", "", "SSH host")
-	// cmd.Flags().Uint32("ssh.port", 22, "SSH port")
-	// cmd.Flags().String("ssh.key", "~/.ssh/id_rsa", "SSH key")
-	// cmd.Flags().String("ssh.user", "${USER}", "SSH user")
 
 	cmd.Flags().StringP("conf", "c", "", "Export config attribute")
 
