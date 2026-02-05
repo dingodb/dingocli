@@ -146,6 +146,9 @@ const (
 
 	// env
 	KEY_ENV_MDS_ADDR = "cluster_mds_addr"
+
+	// dingo.yaml config keys
+	DINGOCLI_KEY_MDS_ADDR = "mdsaddr"
 )
 
 // others

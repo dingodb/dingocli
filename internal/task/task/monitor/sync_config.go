@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
 	"github.com/dingodb/dingocli/internal/configure"
 	"github.com/dingodb/dingocli/internal/task/context"
 	"github.com/dingodb/dingocli/internal/task/scripts"
@@ -91,10 +92,17 @@ func MutateTool(vars *variable.Variables, delimiter string) step.Mutate {
 			return
 		}
 
-		// replace variable
-		value, err = vars.Rendering(value)
-		if err != nil {
-			return
+		muteKey := strings.TrimSpace(key)
+
+		if muteKey == comm.DINGOCLI_KEY_MDS_ADDR {
+			// special handle for mdsaddr config
+			value, err = vars.Get(comm.KEY_ENV_MDS_ADDR)
+		} else {
+			// replace variable
+			value, err = vars.Rendering(value)
+			if err != nil {
+				return
+			}
 		}
 
 		out = fmt.Sprintf("%s%s%s", key, delimiter, value)
