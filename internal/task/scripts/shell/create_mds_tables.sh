@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
-# Usage: create_mdsv2_tables MdsV2BinPath MdsV2ConfPath
+# Usage: create_mds_tables MdsBinPath MdsClusterId
 
-g_mdsv2_client=$1
+g_mds_client=$1
+# cluster id is only used for dingo-store in order multiply mds cluster clould be created in the same store cluster
+g_cluster_id=$2 
 
 # Log function with timestamp
 function log() {
@@ -22,29 +24,29 @@ function error_exit() {
 #      error_exit "COORDINATOR_ADDR environment variable is not set"
 #    fi
 #
-#    log "Initializing coordinator list at $g_mdsv2_conf"
-#    echo "$COORDINATOR_ADDR" > "$g_mdsv2_conf" || error_exit "Failed to write to $g_mdsv2_conf"
+#    log "Initializing coordinator list at $g_mds_conf"
+#    echo "$COORDINATOR_ADDR" > "$g_mds_conf" || error_exit "Failed to write to $g_mds_conf"
 #    log "Coordinator list initialized successfully"
 #}
 
 function create_tables() {
     # Check if binary exists and is executable
-    if [ ! -x "$g_mdsv2_client" ]; then
-      error_exit "MdsV2 client binary not found or not executable: $g_mdsv2_client"
+    if [ ! -x "$g_mds_client" ]; then
+      error_exit "Mds client binary not found or not executable: $g_mds_client"
     fi
 
     # create tables
-    echo "Creating MDSv2 tables..."
-    $g_mdsv2_client --cmd=CreateAllTable --coor_addr=list://$COORDINATOR_ADDR
+    echo "Creating MDS tables..."
+    $g_mds_client --cmd=CreateAllTable --coor_addr=list://$COORDINATOR_ADDR --cluster_id=$g_cluster_id
     local ret=$?
     if [ $ret -ne 0 ]; then
-      error_exit "Failed to create MDSv2 tables (return code: $ret)"
+      error_exit "Failed to create MDS tables (return code: $ret)"
     fi
-    log "MDSv2 tables created successfully"
+    log "MDS tables created successfully"
 }
 
 # Main execution
-log "Starting MDSv2 tables creation process"
+log "Starting MDS tables creation process"
 #init_coor_list
 create_tables
 log "All operations completed successfully"

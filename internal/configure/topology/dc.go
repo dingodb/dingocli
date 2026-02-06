@@ -58,7 +58,7 @@ const (
 	SCRIPT_CHECK_STORE_HEALTH  = "check_store_health.sh"
 	SCRIPT_SYNC_JAVA_OPTS      = "sync_java_opts.sh"
 	SCRIPT_START_EXECUTOR      = "start-executor.sh"
-	SCRIPT_CREATE_MDSV2_TABLES = "create_mdsv2_tables.sh"
+	SCRIPT_CREATE_MDSV2_TABLES = "create_mds_tables.sh"
 
 	// ctx version
 	CTX_KEY_MDS_VERSION = "mds.version"
