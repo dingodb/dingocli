@@ -71,11 +71,13 @@ const (
 type (
 	// config item
 	item struct {
-		kind         string
-		key          string
-		require      int
-		exclude      bool        // exclude for service config
-		defaultValue interface{} // nil means no default value
+		kind    string
+		key     string
+		require int
+		// exclude for service config, if true, this item will not be added to service config
+		exclude bool
+		// if nil meaning no default value, and user not must set this config item
+		defaultValue interface{}
 	}
 
 	itemSet struct {
@@ -614,6 +616,22 @@ var (
 			}
 			return cluster_id
 		},
+	)
+
+	CONFIG_MDS_STORAGE_ENGINE = itemset.insert(
+		KIND_DINGOFS,
+		"mds_storage_engine",
+		REQUIRE_STRING,
+		false,
+		nil,
+	)
+
+	CONFIG_MDS_STORAGE_URL = itemset.insert(
+		KIND_DINGOFS,
+		"storage_url",
+		REQUIRE_STRING,
+		false,
+		nil,
 	)
 )
 

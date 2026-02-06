@@ -175,12 +175,23 @@ func displayStatus(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options
 	switch dcs[0].GetKind() {
 	case topology.KIND_DINGOFS:
 		if isMdsv2 {
-			dingocli.WriteOutln("cluster name     : %s", dingocli.ClusterName())
-			dingocli.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
-			dingocli.WriteOutln("mds     addr     : %s", getClusterMdsAddr(dcs))
 			if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
-				dingocli.WriteOutln("coordinator addr : %s", dcs[0].GetDingoStoreCoordinatorAddr())
+				// check mds's mds_storage_engine config is tikv
+				if dcs[0].GetRole() == topology.ROLE_FS_MDS && dcs[0].GetMdsStorageEngine() == "tikv" {
+					dingocli.WriteOutln("cluster name : %s", dingocli.ClusterName())
+					dingocli.WriteOutln("cluster kind : %s", dcs[0].GetKind())
+					dingocli.WriteOutln("mds     addr : %s", getClusterMdsAddr(dcs))
+					dingocli.WriteOutln("tikv    addr : %s", strings.TrimPrefix(dcs[0].GetMdsStorageUrl(), "list://"))
+				} else {
+					dingocli.WriteOutln("cluster name     : %s", dingocli.ClusterName())
+					dingocli.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
+					dingocli.WriteOutln("mds     addr     : %s", getClusterMdsAddr(dcs))
+					dingocli.WriteOutln("coordinator addr : %s", dcs[0].GetDingoStoreCoordinatorAddr())
+				}
 			} else {
+				dingocli.WriteOutln("cluster name     : %s", dingocli.ClusterName())
+				dingocli.WriteOutln("cluster kind     : %s", dcs[0].GetKind())
+				dingocli.WriteOutln("mds     addr     : %s", getClusterMdsAddr(dcs))
 				dingocli.WriteOutln("coordinator addr : %s", getClusterCoorAddr(dcs))
 			}
 		} else {
