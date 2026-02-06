@@ -294,6 +294,14 @@ func (dc *DeployConfig) GetDingoClusterId() int {
 	return dc.getInt(CONFIG_DINGO_MDS_CLUSTER_ID)
 }
 
+func (dc *DeployConfig) GetMdsStorageEngine() string {
+	return dc.getString(CONFIG_MDS_STORAGE_ENGINE)
+}
+
+func (dc *DeployConfig) GetMdsStorageUrl() string {
+	return dc.getString(CONFIG_MDS_STORAGE_URL)
+}
+
 type (
 	ConfFile struct {
 		Name       string
