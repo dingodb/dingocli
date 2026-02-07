@@ -32,10 +32,10 @@ import (
 )
 
 const (
-	URL_LATEST_VERSION   = "https://github.com/dingodb/dingocli/releases/download/main/commit_id" // TODO replace url
-	URL_INSTALL_SCRIPT   = "https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh"
-	ENV_DINGOADM_UPGRADE = "DINGOADM_UPGRADE"
-	ENV_DINGOADM_VERSION = "DINGOADM_VERSION"
+	URL_LATEST_VERSION = "https://github.com/dingodb/dingocli/releases/download/main/commit_id" // TODO replace url
+	URL_INSTALL_SCRIPT = "https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh"
+	ENV_DINGO_UPGRADE  = "DINGO_UPGRADE"
+	ENV_DINGO_VERSION  = "DINGO_VERSION"
 )
 
 func calcVersion(v string) int {
@@ -141,8 +141,8 @@ func Upgrade2Latest(currentCommit string) error {
 	//)
 
 	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash", URL_INSTALL_SCRIPT))
-	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGOADM_UPGRADE))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGOADM_VERSION, version))
+	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGO_UPGRADE))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_VERSION, version))
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
@@ -150,8 +150,8 @@ func Upgrade2Latest(currentCommit string) error {
 
 func Upgrade(version string) error {
 	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash", URL_INSTALL_SCRIPT))
-	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGOADM_UPGRADE))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGOADM_VERSION, version))
+	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGO_UPGRADE))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_VERSION, version))
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
