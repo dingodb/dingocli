@@ -170,10 +170,8 @@ func (w *statsWatcher) buildSchema(schema string, verbose bool) {
 			s.name = "usage"
 			s.items = append(s.items, &item{"cpu", "process_cpu_usage", metricCPU | metricCounter})
 			s.items = append(s.items, &item{"mem", "process_memory_resident", metricGauge})
-			s.items = append(s.items, &item{"used", "dingofs_memory_used_bytes", metricGauge})
-			if verbose {
-				s.items = append(s.items, &item{"total", "dingofs_memory_total_bytes", metricGauge})
-			}
+			s.items = append(s.items, &item{"rbuf", "vfs_read_buffer_used_bytes", metricGauge})
+			s.items = append(s.items, &item{"wbuf", "vfs_write_buffer_used_bytes", metricGauge})
 		case 'f':
 			s.name = "fuse"
 			s.items = append(s.items, &item{"ops", "dingofs_fuse_op_all", metricTime | metricHist})
