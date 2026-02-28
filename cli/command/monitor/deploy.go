@@ -31,7 +31,7 @@ import (
 
 const (
 	DEPLOY_EXAMPLE = `Examples:
-	$ dingocli monitor deploy -c monitor.yaml    # deploy monitor for current cluster`
+	$ dingo monitor deploy -c monitor.yaml    # deploy monitor for current cluster`
 )
 
 var (

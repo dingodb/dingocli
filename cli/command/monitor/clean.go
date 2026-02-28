@@ -30,9 +30,9 @@ import (
 
 const (
 	CLEAN_EXAMPLE = `Examples:
-  $ dingocli monitor clean                                  # Clean everything for monitor
-  $ dingocli monitor clean --only='data'                    # Clean data for monitor
-  $ dingocli monitor clean --role=grafana --only=container  # Clean container for grafana service`
+  $ dingo monitor clean                                  # Clean everything for monitor
+  $ dingo monitor clean --only='data'                    # Clean data for monitor
+  $ dingo monitor clean --role=grafana --only=container  # Clean container for grafana service`
 )
 
 var (

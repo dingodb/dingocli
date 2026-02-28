@@ -32,7 +32,7 @@ import (
 
 const (
 	COMMIT_EXAMPLE = `Examples:
-  $ dingocli monitor config commit -c /path/to/monitor.yaml  # Commit monitor topology`
+  $ dingo monitor config commit -c /path/to/monitor.yaml  # Commit monitor topology`
 )
 
 type commitOptions struct {

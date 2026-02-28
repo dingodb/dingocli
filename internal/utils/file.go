@@ -213,6 +213,8 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 		return "", err
 	}
 
+	AddExecutePermission(filepath.Join(destination, filename))
+
 	return filePath, nil
 }
 
