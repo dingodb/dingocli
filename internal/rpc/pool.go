@@ -49,10 +49,11 @@ func (c *ConnectionPool) GetConnection(address string, timeout time.Duration, re
 	}
 	c.mux.Unlock()
 
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	for {
 		log.Printf("%s: start to dial", address)
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
 		conn, err := grpc.DialContext(ctx, address,
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithBlock(),
@@ -76,10 +77,27 @@ func (c *ConnectionPool) GetConnection(address string, timeout time.Duration, re
 func (c *ConnectionPool) Release(address string) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
+
+	for _, conn := range c.connections[address] {
+		conn.Close()
+	}
 	delete(c.connections, address)
 }
+
 func (c *ConnectionPool) PutConnection(address string, conn *grpc.ClientConn) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
 	c.connections[address] = append(c.connections[address], conn)
+}
+
+func (c *ConnectionPool) Close() {
+	c.mux.Lock()
+	defer c.mux.Unlock()
+
+	for address, conns := range c.connections {
+		for _, conn := range conns {
+			conn.Close()
+		}
+		delete(c.connections, address)
+	}
 }

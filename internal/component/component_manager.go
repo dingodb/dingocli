@@ -235,7 +235,7 @@ func (cm *ComponentManager) installOrUpdateComponent(name, version string, isUpd
 
 	fmt.Printf("Download %s from %s\n", name, newComponent.URL)
 
-	_, err = utils.DownloadFileWithProgress(newComponent.URL, newComponent.Path, newComponent.Name)
+	err = utils.DownloadFileWithProgress(newComponent.URL, newComponent.Path, newComponent.Name)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download %s: %v", name, err)
 	}

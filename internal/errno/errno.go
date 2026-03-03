@@ -248,7 +248,7 @@ var (
 	ERR_UNSUPPORT_DINGODB_ROLE         = EC(210007, "unsupport dingodb role (coordinator/store/executor/document/index/diskann/proxy/web)")
 	ERR_UNSUPPORT_DINGOSTORE_ROLE      = EC(210008, "unsupport dingo-store role (coordinator/store/document/index/diskann)")
 	// TODO: please check pool set disk type
-	ERR_INVALID_DISK_TYPE = EC(210007, "poolset disk type must be lowercase and can only be one of ssd, hdd and nvme")
+	ERR_INVALID_DISK_TYPE = EC(210009, "poolset disk type must be lowercase and can only be one of ssd, hdd and nvme")
 
 	// 220: commad options (client common)
 	ERR_UNSUPPORT_CLIENT_KIND = EC(220000, "unsupport client kind")

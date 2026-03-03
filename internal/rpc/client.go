@@ -76,7 +76,8 @@ func GetRpcResponse(rpc *Rpc, rpcFunc RpcFunc) (interface{}, *errno.ErrorCode) {
 
 		log.Printf("%s: start to rpc [%s],timeout[%v],retrytimes[%d]", address, rpc.RpcFuncName, rpc.RpcTimeout, retryTimes)
 		for {
-			ctx, _ := context.WithTimeout(context.Background(), rpc.RpcTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), rpc.RpcTimeout)
+			defer cancel()
 			res, err := rpcFunc.Stub_Func(ctx)
 			if err != nil {
 				if retryTimes > 0 { // rpc failed, retrying

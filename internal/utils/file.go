@@ -132,7 +132,7 @@ func AddExecutePermission(filepath string) error {
 	return os.Chmod(filepath, newMode)
 }
 
-func DownloadFileWithProgress(url, destination, filename string) (string, error) {
+func DownloadFileWithProgress(url, destination, filename string) error {
 	// resp, err := http.Get(url)
 	// if err != nil {
 	// 	return "", err
@@ -158,11 +158,11 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return "", err
+		return err
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -173,13 +173,13 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 	tmpFileName = fmt.Sprintf("%s.tmp", tmpFileName)
 
 	if err := os.MkdirAll(destination, 0755); err != nil {
-		return "", err
+		return err
 	}
 
 	filePath := filepath.Join(destination, tmpFileName)
 	out, err := os.Create(filePath)
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer out.Close()
 
@@ -206,16 +206,16 @@ func DownloadFileWithProgress(url, destination, filename string) (string, error)
 	_, err = io.Copy(io.MultiWriter(out, bar), resp.Body)
 	if err != nil {
 		os.Remove(filePath)
-		return "", err
+		return err
 	}
 
 	if err := os.Rename(filepath.Join(destination, tmpFileName), filepath.Join(destination, filename)); err != nil {
-		return "", err
+		return err
 	}
 
 	AddExecutePermission(filepath.Join(destination, filename))
 
-	return filePath, nil
+	return nil
 }
 
 func GetRemoteFileContent(url string) (string, error) {
