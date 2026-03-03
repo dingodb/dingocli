@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/dingodb/dingocli/cli/cli"
 	compmgr "github.com/dingodb/dingocli/internal/component"
@@ -82,7 +81,7 @@ func NewMdsMetaCommand(dingocli *cli.DingoCli) *cobra.Command {
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
-					return runMetaCommandHelp(cmd, options.metaBinary)
+					return utils.RunCommandHelp(cmd, options.metaBinary)
 				}
 			}
 
@@ -114,39 +113,6 @@ func runMeta(cmd *cobra.Command, dingocli *cli.DingoCli, options metaOptions) er
 	if err := oscmd.Run(); err != nil {
 		return err
 	}
-
-	return nil
-}
-
-func runMetaCommandHelp(cmd *cobra.Command, command string) error {
-	// print dingo usage
-	fmt.Printf("Usage: dingo %s %s\n", cmd.Parent().Use, cmd.Use)
-	fmt.Println("")
-	fmt.Println(cmd.Short)
-	fmt.Println("")
-
-	// print  dingo-mds-client options
-	fmt.Println("Options:")
-
-	helpArgs := []string{"--help"}
-	oscmd := exec.Command(command, helpArgs...)
-	output, err := oscmd.CombinedOutput()
-	if err != nil && len(output) == 0 {
-		return err
-	}
-
-	lines := strings.Split(string(output), "\n")
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "--") {
-			fmt.Printf("  %s\n", trimmed)
-		}
-	}
-
-	// print dingocli example
-	fmt.Println("")
-	fmt.Println(cmd.Example)
 
 	return nil
 }

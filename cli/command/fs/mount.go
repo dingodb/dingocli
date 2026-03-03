@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
@@ -87,7 +86,10 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 			// check flags
 			for _, arg := range args {
 				if arg == "--help" || arg == "-h" {
-					return runCommandHelp(cmd, options.clientBinary)
+					return utils.RunCommandHelp(cmd, options.clientBinary)
+				}
+				if arg == "--template" || arg == "-t" {
+					return utils.RunCommand(options.clientBinary, []string{"-t"})
 				}
 				if arg == "--daemonize" || arg == "-d" {
 					options.daemonize = true
@@ -174,37 +176,4 @@ func runMount(cmd *cobra.Command, dingocli *cli.DingoCli, options mountOptions) 
 	case _ = <-isTimeout: //mount failed
 		return fmt.Errorf("Failed mount at %s\n", options.mountpoint)
 	}
-}
-
-func runCommandHelp(cmd *cobra.Command, command string) error {
-	// print dingocli usage
-	fmt.Printf("Usage: dingo %s %s\n", cmd.Parent().Use, cmd.Use)
-	fmt.Println("")
-	fmt.Println(cmd.Short)
-	fmt.Println("")
-
-	// print  dingo-client options
-	fmt.Println("Options:")
-
-	helpArgs := []string{"--help"}
-	oscmd := exec.Command(command, helpArgs...)
-	output, err := oscmd.CombinedOutput()
-	if err != nil && len(output) == 0 {
-		return err
-	}
-
-	lines := strings.Split(string(output), "\n")
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "--") {
-			fmt.Printf("  %s\n", trimmed)
-		}
-	}
-
-	// print dingocli example
-	fmt.Println("")
-	fmt.Println(cmd.Example)
-
-	return nil
 }
