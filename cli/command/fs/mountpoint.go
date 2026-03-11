@@ -134,7 +134,7 @@ func runMountpoint(cmd *cobra.Command, dingocli *cli.DingoCli, options deleteOpt
 			row[common.ROW_FS_ID] = fmt.Sprintf("%d", fsInfo.GetFsId())
 			row[common.ROW_FS_NAME] = fsInfo.GetFsName()
 			row[common.ROW_FS_CLIENTID] = mountPoint.GetClientId()
-			row[common.ROW_MOUNTPOINT] = fmt.Sprintf("%s:%d:%s", mountPoint.GetHostname(), mountPoint.GetPort(), mountPoint.GetPath())
+			row[common.ROW_MOUNTPOINT] = fmt.Sprintf("%s:%d:%s", mountPoint.GetIp(), mountPoint.GetPort(), mountPoint.GetPath())
 			row[common.ROW_FS_CTO] = fmt.Sprintf("%v", mountPoint.GetCto())
 
 			rows = append(rows, row)
