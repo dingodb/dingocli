@@ -38,16 +38,12 @@ const (
 )
 
 func prepareOptions(dingocli *cli.DingoCli, host string, become bool, extra map[string]interface{}) (map[string]interface{}, error) {
-	options := map[string]interface{}{}
 	hc, err := dingocli.GetHost(host)
 	if err != nil {
 		return nil, err
 	}
 
 	config := hc.GetSSHConfig()
-	options["user"] = config.User
-	options["host"] = config.Host
-	options["port"] = config.Port
 
 	opts := []string{
 		"-o StrictHostKeyChecking=no",
@@ -56,16 +52,24 @@ func prepareOptions(dingocli *cli.DingoCli, host string, become bool, extra map[
 	if !config.ForwardAgent {
 		opts = append(opts, fmt.Sprintf("-i %s", config.PrivateKeyPath))
 	}
-	if len(config.BecomeUser) > 0 && become {
-		options["become"] = fmt.Sprintf("%s %s %s",
-			config.BecomeMethod, config.BecomeFlags, config.BecomeUser)
+
+	// Start with extra options first (so custom options like -r are preserved)
+	options := map[string]interface{}{
+		"user":    config.User,
+		"host":    config.Host,
+		"port":    config.Port,
+		"options": strings.Join(opts, " "),
 	}
 
 	for k, v := range extra {
 		options[k] = v
 	}
 
-	options["options"] = strings.Join(opts, " ")
+	if len(config.BecomeUser) > 0 && become {
+		options["become"] = fmt.Sprintf("%s %s %s",
+			config.BecomeMethod, config.BecomeFlags, config.BecomeUser)
+	}
+
 	return options, nil
 }
 
@@ -186,11 +190,17 @@ func ExecCmdInRemoteContainer(dingocli *cli.DingoCli, host, containerId, cmd str
 }
 
 func Scp(dingocli *cli.DingoCli, host, source, target string) error {
-	options, err := prepareOptions(dingocli, host, false,
-		map[string]interface{}{
-			"source": source,
-			"target": target,
-		})
+	optionsMap := map[string]interface{}{
+		"source": source,
+		"target": target,
+	}
+
+	// Check if source is a directory and add recursive flag
+	if utils.IsDir(source) {
+		optionsMap["options"] = "-r"
+	}
+
+	options, err := prepareOptions(dingocli, host, false, optionsMap)
 	if err != nil {
 		return err
 	}
