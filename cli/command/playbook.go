@@ -46,9 +46,11 @@ type result struct {
 }
 
 type playbookOptions struct {
-	filepath string
-	args     []string
-	labels   []string
+	filepath  string
+	args      []string
+	labels    []string
+	scpMode   bool
+	scpTarget string
 }
 
 func checkPlaybookOptions(dingocli *cli.DingoCli, options playbookOptions) error {
@@ -63,12 +65,29 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options playbookOptions
 
 	cmd := &cobra.Command{
-		Use:     "playbook [OPTIONS] PLAYBOOK [ARGS...]",
-		Short:   "Execute playbook",
+		Use:     "playbook PLAYBOOK [ARGS...] [OPTIONS]",
+		Short:   "Execute playbook or copy files to remote hosts",
 		GroupID: "UTILS",
-		Args:    cliutil.RequiresMinArgs(1),
+		Example: `Examples:
+  # Execute playbook.sh on remote hosts
+  $ dingo playbook playbook.sh
+
+  # Copy local file to remote hosts
+  $ dingo playbook --scp --target /tmp/remote.conf local.conf`,
+		Args: cliutil.RequiresMinArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// check args num bigger than 1
+			options.filepath = args[0]
+
+			// SCP mode: copy file to remote hosts
+			if options.scpMode {
+				if options.scpTarget == "" {
+					return fmt.Errorf("--scp flag requires a target path on remote host")
+				}
+
+				return checkPlaybookOptions(dingocli, options)
+			}
+
+			// Script execution mode
 			if len(args) == 1 {
 				// generate any.sh script to /tmp/any.sh
 				anyScript := path.Join("/tmp", "any.sh")
@@ -84,6 +103,9 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 			return checkPlaybookOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if options.scpMode {
+				return runScpMode(dingocli, options)
+			}
 			return runPlaybook(dingocli, options)
 		},
 		DisableFlagsInUseLine: true,
@@ -91,8 +113,24 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.StringSliceVarP(&options.labels, "labels", "l", []string{}, "Specify the host labels")
+	flags.BoolVar(&options.scpMode, "scp", false, "Enable SCP mode to copy files to remote hosts")
+	flags.StringVar(&options.scpTarget, "target", "", "Target path on remote host (used with --scp)")
 
 	return cmd
+}
+
+func executeScp(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts.HostConfig) {
+	defer func() { wg.Done() }()
+	name := hc.GetHost()
+
+	err := tools.Scp(dingocli, name, options.filepath, options.scpTarget)
+	if err != nil {
+		retC <- result{index: idx, host: name, err: err}
+		return
+	}
+
+	out := fmt.Sprintf("file copied: %s -> %s\n", options.filepath, options.scpTarget)
+	retC <- result{index: idx, host: name, out: out, err: nil}
 }
 
 func execute(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts.HostConfig) {
@@ -151,6 +189,37 @@ func receiver(dingocli *cli.DingoCli, total int) {
 	}
 }
 
+func runScpMode(dingocli *cli.DingoCli, options playbookOptions) error {
+	var hcs []*hostconfig.HostConfig
+	var err error
+	hosts := dingocli.Hosts()
+	if len(hosts) > 0 {
+		hcs, err = hostconfig.Filter(hosts, options.labels)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(hcs) == 0 {
+		return fmt.Errorf("no hosts configured. Use 'dingo hosts add' to add hosts first")
+	}
+
+	dingocli.WriteOutln("SCP Mode: Copying %s to %s on %d host(s)...",
+		color.CyanString(options.filepath),
+		color.CyanString(options.scpTarget),
+		len(hcs))
+
+	retC = make(chan result)
+	wg.Add(len(hcs))
+	go receiver(dingocli, len(hcs))
+	for i, hc := range hcs {
+		go executeScp(dingocli, options, i, hc)
+	}
+	wg.Wait()
+	close(retC)
+	return nil
+}
+
 func runPlaybook(dingocli *cli.DingoCli, options playbookOptions) error {
 	var hcs []*hostconfig.HostConfig
 	var err error
@@ -169,5 +238,6 @@ func runPlaybook(dingocli *cli.DingoCli, options playbookOptions) error {
 		go execute(dingocli, options, i, hc)
 	}
 	wg.Wait()
+	close(retC)
 	return nil
 }

@@ -54,6 +54,14 @@ func PathExist(path string) bool {
 	return err == nil
 }
 
+func IsDir(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return info.IsDir()
+}
+
 func AbsPath(path string) string {
 	absPath, err := filepath.Abs(path)
 	if err != nil {
