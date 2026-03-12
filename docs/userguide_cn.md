@@ -1,12 +1,12 @@
-# dingo tool usage
+# Dingo 工具使用指南
 
-A tool for DingoFS
+DingoFS 集群管理工具
 
-- [dingo tool usage](#dingo-tool-usage)
-  - [How to use dingo tool](#how-to-use-dingo-tool)
-    - [Configure](#configure)
-    - [Introduction](#introduction)
-  - [Command](#command)
+- [dingo tool 使用](#dingo-tool-使用)
+  - [如何使用 dingo 工具](#how-to-use-dingo-tool)
+    - [配置](#configure)
+    - [简介](#introduction)
+  - [命令](#command)
     - [fs](#fs)
       - [fs mount](#fs-mount)
       - [fs umount](#fs-umount)
@@ -50,53 +50,53 @@ A tool for DingoFS
       - [quota list](#quota-list)
       - [quota delete](#quota-delete)
       - [quota check](#quota-check)
-      
-## How to use dingo tool
+       
+## 如何使用 dingo 工具
 
-### Configure
+### 配置
 
-set configure file
+设置配置文件
 
-The dingo.yaml file is not necessary for deploy dingofs cluster, it is only used for managing dingofs cluster.
+dingo.yaml 文件对于部署 dingofs 集群不是必需的，仅用于管理 dingofs 集群。
 ```bash
 wget https://raw.githubusercontent.com/dingodb/dingocli/main/dingo.yaml
 ```
-Please modify the `mdsaddr` under `dingofs` in the dingo.yaml file as required
+请根据需要修改 dingo.yaml 文件中 dingofs 下的 `mdsaddr`
 
-configure file priority
-environment variables(CONF=/opt/dingo.yaml) > default (~/.dingo/dingo.yaml)
+配置文件优先级
+环境变量(CONF=/opt/dingo.yaml) > 默认值 (~/.dingo/dingo.yaml)
 ```bash
 mv dingo.yaml ~/.dingo/dingo.yaml
-or
+或者
 export CONF=/opt/dingo.yaml
 ```
 
-### Introduction
+### 简介
 
-Here's how to use the tool
+工具使用方法如下
 
 ```bash
 dingo COMMAND [options]
 ```
 
-When you are not sure how to use a command, --help can give you an example of use:
+当您不确定如何使用某个命令时，--help 可以提供使用示例：
 
 ```bash
 dingo COMMAND --help
 ```
 
-For example:
+例如：
 
 dingo status mds --help
 ```bash
-Usage:  dingo mds status [OPTIONS]
+使用:  dingo mds status [OPTIONS]
 
 show mds cluster status
 
 Options:
   -c, --conf string              Specify configuration file (default "$HOME/.dingo/dingo.yaml")
       --format string            output format (json|plain) (default "plain")
-  -h, --help                     Print usage
+  -h, --help                     Print 使用
       --mdsaddr string           Specify mds address (default "127.0.0.1:7400")
       --rpcretrydelay duration   RPC retry delay (default 200ms)
       --rpcretrytimes uint32     RPC retry times (default 5)
@@ -108,21 +108,21 @@ Examples:
 
 ```
 
-## Command
+## 命令
 
 ### fs
 
 #### fs mount
 
-mount filesystem
+挂载文件系统
 
-Usage:
+使用:
 
 ```shell
 dingo fs mount METAURL MOUNTPOINT [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs mount mds://10.220.69.6:8400/dingofs1 /mnt
@@ -140,15 +140,15 @@ current configuration:
 
 #### fs umount
 
-umount filesystem
+卸载文件系统
 
-Usage:
+使用:
 
 ```shell
 dingo fs umount MOUNTPOINT [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs umount /mnt
@@ -158,19 +158,19 @@ Successfully unmounted /mnt
 
 #### fs create
 
-create fs in cluster
+在集群中创建文件系统
 
-Usage:
+使用:
 
 ```shell
-# store in s3
+# 存储在 s3
 $ dingo create fs dingofs1 --storagetype s3 --s3.ak AK --s3.sk SK --s3.endpoint http://localhost:9000 --s3.bucketname dingofs-bucket
 
-# store in rados
+# 存储在 rados
 $ dingo create fs dingofs1 --storagetype rados --rados.username admin --rados.key AQDg3Y2h --rados.mon 10.220.32.1:3300,10.220.32.2:3300,10.220.32.3:3300 --rados.poolname pool1 --rados.clustername ceph
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs create dingofs1 
@@ -179,15 +179,15 @@ Successfully create filesystem dingofs1, uuid: d58cca2b-08d7-4aac-91b6-69b21d1a1
 
 #### fs delete
 
-delete fs from cluster 
+从集群中删除文件系统 
 
-Usage:
+使用:
 
 ```shell
 dingo fs delete FSNAME [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs delete dingofs1
@@ -198,15 +198,15 @@ Successfully delete filesystem dingofs1
 
 #### fs list
 
-list all fs info 
+列出所有文件系统信息 
 
-Usage:
+使用:
 
 ```shell
 dingo fs list [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs list
@@ -221,15 +221,15 @@ $ dingo fs list
 
 #### fs mountpoint
 
-list all mountpoints in the cluster
+列出集群中所有挂载点
 
-Usage:
+使用:
 
 ```shell
 dingo fs mountpoint [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs mountpoint
@@ -242,15 +242,15 @@ $ dingo fs mountpoint
 
 #### fs query
 
-query one fs info
+查询单个文件系统信息
 
-Usage:
+使用:
 
 ```shell
 dingo fs query [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs query --fsname dingofs1
@@ -261,17 +261,17 @@ $ dingo fs query --fsname dingofs1
 +-------+----------+---------+-----------+-----------+--------+---------------+-------------------------------------+----------+--------------------------------------+
 ```
 
-#### fs usage
+#### fs 使用
 
-get the filesystem usage
+获取文件系统使用情况
 
-Usage:
+使用:
 
 ```shell
 dingo fs usage [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs usage --humanize
@@ -284,38 +284,38 @@ $ dingo fs usage --humanize
 
 #### fs stats
 
-show real time performance statistics of dingofs mountpoint
+显示 dingofs 挂载点的实时性能统计
 
-Usage:
+使用:
 
 ```shell
 dingo fs stats MOUNTPOINT [OPTIONS]
 
-# normal
+# 普通模式
 dingo fs stats /mnt/dingofs
 			
-# fuse metrics
+# fuse 指标
 dingo fs stats /mnt/dingofs --schema f
 
-# s3 metrics
+# s3 指标
 dingo fs stats /mnt/dingofs --schema o
 
-# More metrics
+# 更多指标
 dingo fs stats /mnt/dingofs --verbose
 
-# Show 3 times
+# 显示 3 次
 dingo fs stats /mnt/dingofs --count 3
 
-# Show every 4 seconds
+# 每 4 秒显示一次
 dingo fs stats /mnt/dingofs --interval 4s
 
 ```
-Output:
+输出:
 
 ```shell
 dingo fs stats /mnt/dingofs
 
-------usage------ ----------fuse--------- ----blockcache--- ---object-- ------remotecache------
+------使用------ ----------fuse--------- ----blockcache--- ---object-- ------remotecache------
  cpu   mem   used| ops   lat   read write| load stage cache| get   put | load stage cache  hit 
  525% 4691M 2688K|   0     0     0     0 |   0     0     0 |   0     0 |   0     0     0   0.0%
  526% 4691M 1664K|1433  5.52   177M   95M|   0     0     0 |   0    96M| 453M    0    95M 99.4%
@@ -339,32 +339,15 @@ dingo fs stats /mnt/dingofs
 
 ##### fs quota set
 
-set fs quota
+设置文件系统配额
 
-Usage:
-
-```shell
-dingo fs quota set [OPTIONS]
-```
-
-Output:
-
-```shell
-$ dingo fs quota set  --fsname dingofs1 --capacity 10 --inodes 1000000
-Successfully config fs quota, capacity: 10 GiB, inodes: 1,000,000
-```
-
-##### fs quota set
-
-set fs quota
-
-Usage:
+使用:
 
 ```shell
 dingo fs quota set [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs quota set  --fsname dingofs1 --capacity 10 --inodes 1000000
@@ -373,15 +356,15 @@ Successfully config fs quota, capacity: 10 GiB, inodes: 1,000,000
 
 ##### fs quota get
 
-get fs quota
+获取文件系统配额
 
-Usage:
+使用:
 
 ```shell
 dingo fs quota get [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs quota get --fsname dingofs1 
@@ -394,15 +377,15 @@ $ dingo fs quota get --fsname dingofs1
 
 ##### fs quota check
 
-check fs quota
+检查文件系统配额
 
-Usage:
+使用:
 
 ```shell
 dingo fs quota check [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo fs quota check --fsname dingofs1 
@@ -415,9 +398,9 @@ $ dingo fs quota check --fsname dingofs1
 
 ### component
 
-component command is used to manage dingofs core components (dingo-client, dingo-cache, dingo-mds, dingo-mds-client), supporting download, installation, upgrade, startup and version-specific startup.
+component 命令用于管理 dingofs 核心组件（dingo-client、dingo-cache、dingo-mds、dingo-mds-client），支持下载、安装、升级、启动以及指定版本启动等功能。
 
-Supported components:
+支持的组件列表：
 - dingo-client
 - dingo-cache
 - dingo-mds
@@ -425,21 +408,21 @@ Supported components:
 
 #### component list
 
-List all available and installed components
+列出所有可用组件和已安装组件
 
-Usage:
+使用:
 
 ```shell
 dingo component list [OPTIONS]
 
-# Show detailed output
+# 显示详细输出
 dingo component list -v
 
-# Show only installed components
+# 仅显示已安装的组件
 dingo component list --installed
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo component list
@@ -460,13 +443,13 @@ dingo-mds         v3.0.0      Yes          abc123      Yes
 dingo-mds-client  v3.0.0      Yes          abc123      Yes
 ```
 
-> Note: (U) indicates an update is available
+> 注：(U) 表示有可用的更新版本
 
 #### component install
 
-Install components
+安装组件
 
-Usage:
+使用:
 
 ```shell
 dingo component install <component1>[:version] [component2...N] [OPTIONS]
@@ -475,20 +458,20 @@ dingo component install <component1>[:version] [component2...N] [OPTIONS]
 Examples:
 
 ```shell
-# Install latest stable version
+# 安装最新稳定版
 $ dingo component install dingo-client
 
-# Install specific version
+# 安装指定版本
 $ dingo component install dingo-client:v3.0.5
 
-# Install main branch (non-stable version)
+# 安装 main 分支（非稳定版）
 $ dingo component install dingo-client:main
 
-# Install multiple components at once
+# 同时安装多个组件
 $ dingo component install dingo-client:main dingo-cache dingo-mds:v3.0.5
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo component install dingo-client
@@ -498,31 +481,31 @@ Successfully install components [dingo-client:v3.0.0] ^_^!
 
 #### component update
 
-Update installed components
+更新已安装的组件
 
-Usage:
+使用:
 
 ```shell
 dingo component update <component1>[:version] [component2...N] [OPTIONS]
 ```
 
 Options:
-- `--all`: Update all installed components
+- `--all`: 更新所有已安装的组件
 
 Examples:
 
 ```shell
-# Update dingo-client to latest stable version
+# 更新 dingo-client 到最新稳定版
 $ dingo component update dingo-client
 
-# Update dingo-client:v3.0.5 to latest build
+# 更新 dingo-client:v3.0.5 到最新构建版本
 $ dingo component update dingo-client:v3.0.5
 
-# Update all installed components
+# 更新所有已安装组件
 $ dingo component update --all
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo component update dingo-client
@@ -532,32 +515,32 @@ Updated successfully ^_^!
 
 #### component uninstall
 
-Uninstall components
+卸载组件
 
-Usage:
+使用:
 
 ```shell
 dingo component uninstall <component1>:<version> [OPTIONS]
 ```
 
 Options:
-- `--all`: Uninstall all versions of a component
-- `--force`: Force uninstall even if the component is active
+- `--all`: 卸载指定组件的所有版本
+- `--force`: 强制卸载，即使组件正在使用
 
 Examples:
 
 ```shell
-# Uninstall specific version
+# 卸载指定版本
 $ dingo component uninstall dingo-client:v1.2.0
 
-# Uninstall all versions of a component
+# 卸载指定组件的所有版本
 $ dingo component uninstall dingo-client --all
 
-# Force uninstall active component
+# 强制卸载正在使用的组件
 $ dingo component uninstall dingo-client:v1.2.0 --force
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo component uninstall dingo-client:v1.2.0
@@ -571,9 +554,9 @@ Successfully removed components:
 
 #### component use
 
-Set default version
+设置默认版本
 
-Usage:
+使用:
 
 ```shell
 dingo component use <component1>:[version] [OPTIONS]
@@ -582,33 +565,33 @@ dingo component use <component1>:[version] [OPTIONS]
 Examples:
 
 ```shell
-# Use specific version as default
+# 使用指定版本作为默认版本
 $ dingo component use dingo-client:v1.2.0
 
-# Use latest version as default
+# 使用最新版本作为默认版本
 $ dingo component use dingo-client
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo component use dingo-client:v1.2.0
 Successfully use dingo-client:v1.2.0 as default version
 ```
 
-#### mds
+### mds
 
 #### mds status
 
-get status of mds
+获取 mds 状态
 
-Usage:
+使用:
 
 ```shell
 dingo mds status
 ```
 
-Output:
+输出:
 
 ```shell
 +------+------------------+--------+-------------------------+-------------+
@@ -624,15 +607,15 @@ Output:
 
 #### mds start
 
-start mds
+启动 mds
 
-Usage:
+使用:
 
 ```shell
 dingo mds start --conf=./mds.conf
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo mds start --conf=./mds.conf 
@@ -647,15 +630,15 @@ mds is listening on 0.0.0.0:7777
 
 #### mds meta
 
-backup and restore meta data
+备份和恢复元数据
 
-Usage:
+使用:
 
 ```shell
 dingo mds meta --cmd=backup  --type=meta --coor_addr=file://./coor_list --output_type=file --out=meta_backup
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo mds meta --cmd=backup  --type=meta --coor_addr=file://./coor_list --output_type=file --out=meta_backup --fs_id=10000
@@ -668,15 +651,15 @@ summary total_count(9) lock_count(2) auto_increment_id_count(0) mds_heartbeat_co
 
 #### cache start
 
-start cache node
+启动缓存节点
 
-Usage:
+使用:
 
 ```shell
 dingo cache start [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache start --id=85a4b352-4097-4868-9cd6-9ec5e53db1b6 --conf ./cache.conf
@@ -694,15 +677,15 @@ dingo-cache is listening on 10.220.69.6:8888
 
 ##### cache group list
 
-list all remote cache group name
+列出所有远程缓存组名称
 
-Usage:
+使用:
 
 ```shell
 dingo cache group list [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache group list 
@@ -717,15 +700,15 @@ $ dingo cache group list
 
 ##### cache member set
 
-set cache member weight
+设置缓存成员权重
 
-Usage:
+使用:
 
 ```shell
 dingo cache member set --memberid MEMBERID --ip IP --port PORT --weight WEIGHT [OPTIONS]]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache member set --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 --weight 70
@@ -734,15 +717,15 @@ Successfully reweight cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6 to 70
 
 ##### cache member list
 
-list all cache members
+列出所有缓存成员
 
-Usage:
+使用:
 
 ```shell
 dingo cache member list [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache member list 
@@ -755,15 +738,15 @@ $ dingo cache member list
 
 ##### cache member leave
 
-leave cache member from group
+将缓存成员从组中移除
 
-Usage:
+使用:
 
 ```shell
 dingo cache member leave [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache member leave --group group1  --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 
@@ -772,15 +755,15 @@ Successfully leave cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
 
 ##### cache member unlock
 
-unbind the cache memberid with IP and Port
+解除缓存成员与 IP 和端口的绑定
 
-Usage:
+使用:
 
 ```shell
 dingo cache member unlock [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache member unlock  --memberid 85a4b352-4097-4868-9cd6-9ec5e53db1b6 --ip 10.220.69.6 --port 8888 
@@ -789,15 +772,15 @@ Successfully unlock cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
 
 ##### cache member delete
 
-delete cache member
+删除缓存成员
 
-Usage:
+使用:
 
 ```shell
 dingo cache member delete MEMBERID [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo cache member delete 85a4b352-4097-4868-9cd6-9ec5e53db1b6
@@ -810,9 +793,9 @@ Successfully delete cachemember 85a4b352-4097-4868-9cd6-9ec5e53db1b6
 
 #### warmup add
 
-warmup a file(directory), or given a list file contains a list of files(directories) that you want to warmup.
+预热文件（目录），或提供包含要预热的文件（目录）列表的文件。
 
-Usage:
+使用:
 
 ```shell
 dingo warmup add /mnt/dingofs/warmup
@@ -821,9 +804,9 @@ dingo warmup add --filelist /mnt/dingofs/warmup.list
 
 #### warmup query
 
-query the warmup progress
+查询预热进度
 
-Usage:
+使用:
 
 ```shell
 dingo warmup query /mnt/dingofs/warmup
@@ -832,9 +815,9 @@ dingo warmup query /mnt/dingofs/warmup
 ### config
 #### config fs
 
-config fs quota for dingofs
+为 dingofs 配置文件系统配额
 
-Usage:
+使用:
 
 ```shell
 dingo config fs --fsid 1 --capacity 100
@@ -842,15 +825,15 @@ dingo config fs --fsname dingofs --capacity 10 --inodes 1000000000
 ```
 #### config get
 
-get fs quota for dingofs
+获取 dingofs 文件系统配额
 
-Usage:
+使用:
 
 ```shell
 dingo config get --fsid 1
 dingo config get --fsname dingofs
 ```
-Output:
+输出:
 
 ```shell
 +------+---------+----------+------+------+---------------+-------+-------+
@@ -862,15 +845,15 @@ Output:
 
 #### config check
 
-check quota of fs
+检查文件系统配额
 
-Usage:
+使用:
 
 ```shell
 dingo config check --fsid 1
 dingo config check --fsname dingofs
 ```
-Output:
+输出:
 
 ```shell
 +------+----------+-----------------+---------------+---------------+-----------+-------+-----------+---------+
@@ -883,15 +866,15 @@ Output:
 ### quota
 #### quota set
 
-set quota to directory
+设置目录配额
 
-Usage:
+使用:
 
 ```shell
-Usage:  dingo quota set [OPTIONS]
+使用:  dingo quota set [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo quota set --fsname dingofs1  --path /dir01  --capacity 10 --inodes 100000
@@ -899,14 +882,14 @@ Successfully set directory[/dir01] quota, capacity: 10 GiB, inodes: 100,000
 ```
 #### quota get
 
-get directory quota
+获取目录配额
 
-Usage:
+使用:
 
 ```shell
 dingo quota get [OPTIONS]
 ```
-Output:
+输出:
 
 ```shell
 $ dingo quota get --fsname dingofs1  --path /dir01
@@ -918,15 +901,15 @@ $ dingo quota get --fsname dingofs1  --path /dir01
 ```
 #### quota list
 
-list fs all directory quota
+列出文件系统所有目录配额
 
-Usage:
+使用:
 
 ```shell
 dingo quota list --fsname dingofs1
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo quota list --fsname dingofs1
@@ -939,15 +922,15 @@ $ dingo quota list --fsname dingofs1
 
 #### quota delete
 
-delete quota of a directory
+删除目录配额
 
-Usage:
+使用:
 
 ```shell
 dingo quota delete [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo quota delete --fsname dingofs1 --path /dir01
@@ -956,15 +939,15 @@ Successfully delete directory[/dir01] quota
 
 #### quota check
 
-verify the consistency of directory quota
+验证目录配额的一致性
 
-Usage:
+使用:
 
 ```shell
 dingo quota check [OPTIONS]
 ```
 
-Output:
+输出:
 
 ```shell
 $ dingo quota check --fsname dingofs1 --path /dir01
