@@ -61,6 +61,8 @@ func NewSubpathDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Args:    utils.ExactArgs(0),
 		Example: FS_DELETE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
+
 			utils.ReadCommandConfig(cmd)
 
 			fsid, err := rpc.GetFsId(cmd)
@@ -76,8 +78,6 @@ func NewSubpathDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 			options.threads = utils.GetUint32Flag(cmd, utils.DINGOFS_THREADS)
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
-
-			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
 			return runDelete(cmd, dingocli, options)
 		},
