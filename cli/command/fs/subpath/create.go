@@ -75,6 +75,8 @@ func NewSubpathCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Args:    utils.ExactArgs(0),
 		Example: SUBPATH_CREATE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
+
 			utils.ReadCommandConfig(cmd)
 
 			fsid, err := rpc.GetFsId(cmd)
@@ -92,8 +94,6 @@ func NewSubpathCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 			options.gid = utils.GetUint32Flag(cmd, utils.DINGOFS_SUBPATH_GID)
 
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
-
-			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
 
 			return runCreate(cmd, dingocli, options)
 		},
@@ -155,13 +155,10 @@ func runCreate(cmd *cobra.Command, dingocli *cli.DingoCli, options createOptions
 		epoch:  epoch,
 	}
 
-	checkErr := checkPathIsExist(cmd, options, parentInodeId, epoch)
-	if checkErr != nil {
-		outputResult.Error = errno.ERR_RPC_FAILED.E(checkErr)
-	} else {
+	exists, _ := checkPathIsExist(cmd, options, parentInodeId, epoch)
+	if !exists {
 		outputResult.Error, outputResult.Result = mkDir(cmd, inodeParam)
 	}
-
 	// print result
 	if options.format == "json" {
 		return output.OutputJson(outputResult)
@@ -176,18 +173,18 @@ func runCreate(cmd *cobra.Command, dingocli *cli.DingoCli, options createOptions
 	return nil
 }
 
-func checkPathIsExist(cmd *cobra.Command, options createOptions, parentId uint64, epoch uint64) error {
+func checkPathIsExist(cmd *cobra.Command, options createOptions, parentId uint64, epoch uint64) (bool, error) {
 	entries, entErr := rpc.ListDentry(cmd, options.fsid, parentId, epoch)
 	if entErr != nil {
-		return entErr
+		return false, entErr
 	}
 	for _, entry := range entries {
 		if entry.GetName() == options.name {
-			return nil
+			return true, nil
 		}
 	}
 
-	return os.ErrNotExist
+	return false, os.ErrNotExist
 }
 
 func mkDir(cmd *cobra.Command, inodeParam InodeParam) (*errno.ErrorCode, interface{}) {
