@@ -888,13 +888,13 @@ set quota to directory
 Usage:
 
 ```shell
-Usage:  dingo quota set [OPTIONS]
+Usage: dingo fs quota set [OPTIONS]
 ```
 
 Output:
 
 ```shell
-$ dingo quota set --fsname dingofs1  --path /dir01  --capacity 10 --inodes 100000
+$ dingo fs quota set --fsname dingofs1  --path /dir01  --capacity 10 --inodes 100000
 Successfully set directory[/dir01] quota, capacity: 10 GiB, inodes: 100,000
 ```
 #### quota get
@@ -904,12 +904,12 @@ get directory quota
 Usage:
 
 ```shell
-dingo quota get [OPTIONS]
+dingo fs quota get [OPTIONS]
 ```
 Output:
 
 ```shell
-$ dingo quota get --fsname dingofs1  --path /dir01
+$ dingo fs quota get --fsname dingofs1  --path /dir01
 +-------------+--------+----------+------+------+---------+-------+-------+
 |   INODEID   |  PATH  | CAPACITY | USED | USE% | INODES  | IUSED | IUSE% |
 +-------------+--------+----------+------+------+---------+-------+-------+
@@ -923,13 +923,13 @@ list fs all directory quota
 Usage:
 
 ```shell
-dingo quota list --fsname dingofs1
+dingo fs quota list --fsname dingofs1
 ```
 
 Output:
 
 ```shell
-$ dingo quota list --fsname dingofs1
+$ dingo fs quota list --fsname dingofs1
 +-------------+--------+----------+------+------+---------+-------+-------+
 |   INODEID   |  PATH  | CAPACITY | USED | USE% | INODES  | IUSED | IUSE% |
 +-------------+--------+----------+------+------+---------+-------+-------+
@@ -944,13 +944,13 @@ delete quota of a directory
 Usage:
 
 ```shell
-dingo quota delete [OPTIONS]
+dingo fs quota delete [OPTIONS]
 ```
 
 Output:
 
 ```shell
-$ dingo quota delete --fsname dingofs1 --path /dir01
+$ dingo fs quota delete --fsname dingofs1 --path /dir01
 Successfully delete directory[/dir01] quota
 ```
 
@@ -961,13 +961,13 @@ verify the consistency of directory quota
 Usage:
 
 ```shell
-dingo quota check [OPTIONS]
+dingo fs quota check [OPTIONS]
 ```
 
 Output:
 
 ```shell
-$ dingo quota check --fsname dingofs1 --path /dir01
+$ dingo fs quota check--fsname dingofs1 --path /dir01
 +-------------+--------+----------------+------+----------+---------+-------+-----------+---------+
 |   INODEID   |  NAME  |    CAPACITY    | USED | REALUSED | INODES  | IUSED | REALIUSED | STATUS  |
 +-------------+--------+----------------+------+----------+---------+-------+-----------+---------+

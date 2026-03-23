@@ -33,9 +33,9 @@ import (
 
 const (
 	PRECHECK_EXAMPLE = `Examples:
-  $ dingocli cluster precheck                         # Check all items
-  $ dingocli cluster precheck --skip topology         # Check all items except topology
-  $ dingocli cluster precheck --skip topology,kernel  # Check all items except topology and kernel`
+  $ dingo cluster precheck                         # Check all items
+  $ dingo cluster precheck --skip topology         # Check all items except topology
+  $ dingo cluster precheck --skip topology,kernel  # Check all items except topology and kernel`
 )
 
 const (

@@ -33,7 +33,7 @@ import (
 
 const (
 	QUOTA_CHECK_EXAMPLE = `Examples:
-   $ dingo quota check --fsname fs1 --path /dir1`
+   $ dingo fs quota check--fsname fs1 --path /dir1`
 )
 
 type checkOptions struct {

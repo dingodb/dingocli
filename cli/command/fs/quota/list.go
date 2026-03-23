@@ -35,7 +35,7 @@ import (
 
 const (
 	QUOTA_LIST_EXAMPLE = `Examples:
-   $ dingo quota list --fsname fs1`
+   $ dingo fs quota list --fsname fs1`
 )
 
 type listOptions struct {

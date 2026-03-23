@@ -33,7 +33,7 @@ import (
 
 const (
 	QUOTA_GET_EXAMPLE = `Examples:
-   $ dingo quota get --fsname fs1 --path /dir1`
+   $ dingo fs quota get --fsname fs1 --path /dir1`
 )
 
 type getOptions struct {

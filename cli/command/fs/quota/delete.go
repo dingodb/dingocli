@@ -32,7 +32,7 @@ import (
 
 const (
 	QUOTA_DELETE_EXAMPLE = `Examples:
-   $ dingo quota delete --fsname dingofs --path /dir1`
+   $ dingo fs quota delete --fsname dingofs --path /dir1`
 )
 
 type deleteOptions struct {
