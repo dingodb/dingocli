@@ -33,7 +33,7 @@ import (
 
 const (
 	QUOTA_SET_EXAMPLE = `Examples:
-   $ dingo quota set --fsname dingofs --capacity 10 --inodes 1000000`
+   $ dingo fs quota set --fsname dingofs --capacity 10 --inodes 1000000`
 )
 
 type setOptions struct {
