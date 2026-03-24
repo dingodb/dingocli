@@ -43,6 +43,7 @@ import (
 type DingoCli struct {
 	// project layout
 	rootDir   string
+	binDir    string
 	dataDir   string
 	pluginDir string
 	logDir    string
@@ -87,6 +88,7 @@ func NewDingoCli() (*DingoCli, error) {
 	rootDir := fmt.Sprintf("%s/.dingo", home)
 	dingocli := &DingoCli{
 		rootDir:   rootDir,
+		binDir:    path.Join(rootDir, "bin"),
 		dataDir:   path.Join(rootDir, "data"),
 		pluginDir: path.Join(rootDir, "plugins"),
 		logDir:    path.Join(rootDir, "logs"),
@@ -105,6 +107,7 @@ func (dingocli *DingoCli) init() error {
 	// (1) Create directory
 	dirs := []string{
 		dingocli.rootDir,
+		dingocli.binDir,
 		dingocli.dataDir,
 		dingocli.pluginDir,
 		dingocli.logDir,
