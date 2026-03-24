@@ -162,6 +162,11 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task
 
 	if dc.GetKind() == topology.KIND_DINGOFS || dc.GetKind() == topology.KIND_DINGODB || dc.GetKind() == topology.KIND_DINGOSTORE {
 		for _, conf := range layout.ServiceConfFiles {
+			confName := conf.Name
+			// check if config is yaml format, set delimiter to ': ' for better readability, default is '='
+			if strings.HasSuffix(confName, ".yaml") || strings.HasSuffix(confName, ".yml") {
+				delimiter = CONFIG_DELIMITER_COLON
+			}
 			t.AddStep(&step.SyncFile{ // sync service config, e.g. mds.template.conf
 				ContainerSrcId:    &containerId,
 				ContainerSrcPath:  conf.SourcePath,
@@ -187,7 +192,7 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task
 			// sync check_store_health.sh
 			checkStoreScript := scripts.CHECK_STORE_HEALTH
 			checkStoreScriptPath := fmt.Sprintf("%s/%s", layout.DingoStoreScriptDir, topology.SCRIPT_CHECK_STORE_HEALTH) // /opt/dingo-store/scripts
-			t.AddStep(&step.InstallFile{                                                                                 // install create_mdsv2_tables.sh script
+			t.AddStep(&step.InstallFile{
 				ContainerId:       &containerId,
 				ContainerDestPath: checkStoreScriptPath,
 				Content:           &checkStoreScript,

@@ -83,8 +83,8 @@ var (
 		ROLE_CHUNKSERVER:      {"chunkserver.conf", "cs_client.conf", "s3.conf"},
 		ROLE_SNAPSHOTCLONE:    {"snapshotclone.conf", "snap_client.conf", "s3.conf", "nginx.conf"},
 		ROLE_METASERVER:       {"metaserver.conf"},
-		ROLE_COORDINATOR:      {"coordinator-gflags.conf "},
-		ROLE_STORE:            {"store-gflags.conf"},
+		ROLE_COORDINATOR:      {"coordinator-gflags.conf"},
+		ROLE_STORE:            {"store-gflags.conf", "store.template.yaml"},
 		ROLE_FS_MDS:           {"mds.conf", "mds.template.conf"}, // change dingo-mdsv2.template.conf to mds.template.conf
 		ROLE_DINGODB_EXECUTOR: {"executor.yaml"},
 		ROLE_DINGODB_WEB:      {"application-web-dev.yaml"},
