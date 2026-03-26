@@ -30,9 +30,9 @@ import (
 
 const (
 	CLEAN_EXAMPLE = `Examples:
-  $ dingocli cluster clean                               # Clean everything for all services
-  $ dingocli cluster clean --only='log,data'             # Clean log and data for all services
-  $ dingocli cluster clean --role=etcd --only=container  # Clean container for etcd services`
+  $ dingo cluster clean                               # Clean everything for all services
+  $ dingo cluster clean --only='log,data'             # Clean log and data for all services
+  $ dingo cluster clean --role=etcd --only=container  # Clean container for etcd services`
 )
 
 var (
