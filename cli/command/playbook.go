@@ -51,6 +51,7 @@ type playbookOptions struct {
 	labels    []string
 	scpMode   bool
 	scpTarget string
+	tuneMode  bool
 }
 
 func checkPlaybookOptions(dingocli *cli.DingoCli, options playbookOptions) error {
@@ -73,9 +74,20 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
   $ dingo playbook playbook.sh
 
   # Copy local file to remote hosts
-  $ dingo playbook --scp --target /tmp/remote.conf local.conf`,
+  $ dingo playbook --scp --target /tmp/remote.conf local.conf
+  
+  # Adjust kernel on remote hosts
+  $ dingo playbook --tune vm.swappiness 0`,
 		Args: cliutil.RequiresMinArgs(1),
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if options.tuneMode {
+				if len(args) < 2 {
+					return fmt.Errorf("--tune flag requires key and value arguments")
+				}
+				options.args = args
+				return nil
+			}
+
 			options.filepath = args[0]
 
 			// SCP mode: copy file to remote hosts
@@ -103,6 +115,9 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 			return checkPlaybookOptions(dingocli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if options.tuneMode {
+				return runTuneMode(dingocli, options)
+			}
 			if options.scpMode {
 				return runScpMode(dingocli, options)
 			}
@@ -115,6 +130,7 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	flags.StringSliceVarP(&options.labels, "labels", "l", []string{}, "Specify the host labels")
 	flags.BoolVar(&options.scpMode, "scp", false, "Enable SCP mode to copy files to remote hosts")
 	flags.StringVar(&options.scpTarget, "target", "", "Target path on remote host (used with --scp)")
+	flags.BoolVar(&options.tuneMode, "tune", false, "Enable tune mode to adjust kernel on remote hosts")
 
 	return cmd
 }
@@ -131,6 +147,39 @@ func executeScp(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *ho
 
 	out := fmt.Sprintf("file copied: %s -> %s\n", options.filepath, options.scpTarget)
 	retC <- result{index: idx, host: name, out: out, err: nil}
+}
+
+func executeTune(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts.HostConfig) {
+	defer func() { wg.Done() }()
+	name := hc.GetHost()
+
+	script := fmt.Sprintf(`
+KEY="%s"
+VALUE="%s"
+sudo sysctl -w $KEY=$VALUE
+
+found=0
+if grep -qE "^[#[:space:]]*$KEY[[:space:]]*=" /etc/sysctl.conf 2>/dev/null; then
+    sudo sed -i --follow-symlinks -E "s/^[#[:space:]]*$KEY[[:space:]]*=.*/$KEY = $VALUE/g" /etc/sysctl.conf
+    found=1
+fi
+
+if ls /etc/sysctl.d/*.conf 1>/dev/null 2>&1; then
+    for f in /etc/sysctl.d/*.conf; do
+        if [ -f "$f" ] && grep -qE "^[#[:space:]]*$KEY[[:space:]]*=" "$f" 2>/dev/null; then
+            sudo sed -i --follow-symlinks -E "s/^[#[:space:]]*$KEY[[:space:]]*=.*/$KEY = $VALUE/g" "$f"
+            found=1
+        fi
+    done
+fi
+
+if [ $found -eq 0 ]; then
+    sudo bash -c "echo '$KEY = $VALUE' >> /etc/sysctl.d/99-dingo-tune.conf"
+fi
+`, options.args[0], options.args[1])
+
+	out, err := tools.ExecuteRemoteCommand(dingocli, name, script)
+	retC <- result{index: idx, host: name, out: out, err: err}
 }
 
 func execute(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts.HostConfig) {
@@ -214,6 +263,37 @@ func runScpMode(dingocli *cli.DingoCli, options playbookOptions) error {
 	go receiver(dingocli, len(hcs))
 	for i, hc := range hcs {
 		go executeScp(dingocli, options, i, hc)
+	}
+	wg.Wait()
+	close(retC)
+	return nil
+}
+
+func runTuneMode(dingocli *cli.DingoCli, options playbookOptions) error {
+	var hcs []*hostconfig.HostConfig
+	var err error
+	hosts := dingocli.Hosts()
+	if len(hosts) > 0 {
+		hcs, err = hostconfig.Filter(hosts, options.labels)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(hcs) == 0 {
+		return fmt.Errorf("no hosts configured. Use 'dingo hosts add' to add hosts first")
+	}
+
+	dingocli.WriteOutln("Tune Mode: Setting %s=%s on %d host(s)...",
+		color.CyanString(options.args[0]),
+		color.CyanString(options.args[1]),
+		len(hcs))
+
+	retC = make(chan result)
+	wg.Add(len(hcs))
+	go receiver(dingocli, len(hcs))
+	for i, hc := range hcs {
+		go executeTune(dingocli, options, i, hc)
 	}
 	wg.Wait()
 	close(retC)
