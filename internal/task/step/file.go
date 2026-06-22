@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	comm "github.com/dingodb/dingocli/internal/common"
+	"github.com/dingodb/dingocli/internal/configure/topology"
 	"github.com/dingodb/dingocli/internal/errno"
 	"github.com/dingodb/dingocli/internal/task/context"
 	"github.com/dingodb/dingocli/internal/task/task"
@@ -60,6 +61,7 @@ type (
 	DynamicAppend func(string, string) (string, error)
 
 	Filter struct {
+		ContainerRole string
 		KVFieldSplit  string
 		Mutate        Mutate
 		SerivceConfig map[string]string
@@ -68,6 +70,7 @@ type (
 	}
 
 	SyncFile struct {
+		ContainerRole     string
 		ContainerSrcId    *string
 		ContainerSrcPath  string
 		ContainerDestId   *string
@@ -266,9 +269,14 @@ func (s *Filter) Execute(ctx *context.Context) error {
 		output = append(output, out)
 	}
 
-	// extract the key from topologySerivceConfigKeys that are not in originServiceConfigKeys
+	if s.ContainerRole != topology.ROLE_FS_MDS {
+		*s.Output = strings.Join(output, "\n")
+		return nil
+	}
+
+	// sync mds config: extract the key from topologySerivceConfigKeys that are not in originServiceConfigKeys
 	extraServiceConfigKeys := utils.Filter(topologySerivceConfigKeys, func(k string) bool {
-		if !strings.HasPrefix(k, "mds_") {
+		if strings.HasPrefix(k, "restart_policy") {
 			return false
 		}
 		mdsv2_key := fmt.Sprintf("%s%s", comm.MDSV2_CONFIG_PREFIX, k)
@@ -301,6 +309,7 @@ func (s *SyncFile) Execute(ctx *context.Context) error {
 		ExecOptions:      s.ExecOptions,
 	})
 	steps = append(steps, &Filter{
+		ContainerRole: s.ContainerRole,
 		KVFieldSplit:  s.KVFieldSplit,
 		Mutate:        s.Mutate,
 		SerivceConfig: s.SerivceConfig,
@@ -369,6 +378,7 @@ func (s *TrySyncFile) Execute(ctx *context.Context) error {
 		return nil
 	}
 	sync := SyncFile{
+		ContainerRole:     "",
 		ContainerSrcId:    s.ContainerSrcId,
 		ContainerSrcPath:  s.ContainerSrcPath,
 		ContainerDestId:   s.ContainerDestId,
