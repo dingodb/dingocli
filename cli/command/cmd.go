@@ -91,7 +91,7 @@ func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
 
 func setupRootCommand(cmd *cobra.Command, dingocli *cli.DingoCli) {
 	cmd.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "Version %s" .Version}}
-Copyright 2025 dingodb.com Inc.
+Copyright 2026 dingofs Org.
 Licensed under the Apache License, Version 2.0
 http://www.apache.org/licenses/LICENSE-2.0
 `)
