@@ -168,6 +168,7 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (*task
 				delimiter = CONFIG_DELIMITER_COLON
 			}
 			t.AddStep(&step.SyncFile{ // sync service config, e.g. mds.template.conf
+				ContainerRole:     dc.GetRole(),
 				ContainerSrcId:    &containerId,
 				ContainerSrcPath:  conf.SourcePath,
 				ContainerDestId:   &containerId,
