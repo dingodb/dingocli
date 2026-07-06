@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
@@ -32,8 +33,8 @@ import (
 
 const (
 	FS_MOUNT_EXAMPLE = `Examples:
-   $ dingo fs mount mds://10.220.69.6:7400/myfs /mnt/dingofs
-   $ dingo fs mount local://myfs /mnt/dingofs`
+	   $ dingo fs mount mds://10.220.69.6:7400/myfs /mnt/dingofs
+	   $ dingo fs mount local://myfs /mnt/dingofs`
 )
 
 var (
@@ -45,6 +46,7 @@ type mountOptions struct {
 	cmdArgs      []string
 	mountpoint   string
 	daemonize    bool
+	allowOther   bool
 }
 
 func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
@@ -94,12 +96,18 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 				if arg == "--daemonize" || arg == "-d" {
 					options.daemonize = true
 				}
+				if arg == "--allow_other" {
+					options.allowOther = true
+				}
 			}
 
 			if len(args) < 2 {
 				return fmt.Errorf("\"dingocli fs mount\" requires exactly 2 arguments\n\nUsage: dingocli fs mount METAURL MOUNTPOINT [OPTIONS]")
 			}
-			options.mountpoint = args[1]
+			_, options.mountpoint = extractPositionalArgs(args)
+			if options.mountpoint == "" {
+				return fmt.Errorf("\"dingocli fs mount\" requires exactly 2 arguments\n\nUsage: dingocli fs mount METAURL MOUNTPOINT [OPTIONS]")
+			}
 
 			fmt.Println(color.CyanString("use %s:%s(%s)", component.Name, component.Version, options.clientBinary))
 
@@ -119,7 +127,7 @@ func runMount(cmd *cobra.Command, dingocli *cli.DingoCli, options mountOptions) 
 	var name string
 
 	name = options.clientBinary
-	cmdarg := options.cmdArgs
+	cmdarg := translateAllowOther(options.cmdArgs, options.allowOther)
 
 	oscmd = exec.Command(name, cmdarg...)
 
@@ -176,4 +184,43 @@ func runMount(cmd *cobra.Command, dingocli *cli.DingoCli, options mountOptions) 
 	case _ = <-isTimeout: //mount failed
 		return fmt.Errorf("Failed mount at %s\n", options.mountpoint)
 	}
+}
+
+// extractPositionalArgs returns the two non-flag positional arguments
+// (METAURL and MOUNTPOINT), skipping flags like --allow_other.
+func extractPositionalArgs(args []string) (string, string) {
+	var positionals []string
+	for _, arg := range args {
+		if !strings.HasPrefix(arg, "-") {
+			positionals = append(positionals, arg)
+		}
+	}
+	if len(positionals) >= 2 {
+		return positionals[0], positionals[1]
+	}
+	return "", ""
+}
+
+// translateAllowOther converts --allow_other to --fuse_mount_options
+func translateAllowOther(args []string, allowOther bool) []string {
+	if !allowOther {
+		return args
+	}
+	var result []string
+	foundMountOpts := false
+	for _, arg := range args {
+		if arg == "--allow_other" {
+			continue
+		}
+		if strings.HasPrefix(arg, "--fuse_mount_options=") {
+			result = append(result, arg+",allow_other")
+			foundMountOpts = true
+			continue
+		}
+		result = append(result, arg)
+	}
+	if !foundMountOpts {
+		result = append(result, "--fuse_mount_options=default_permissions,allow_other")
+	}
+	return result
 }
