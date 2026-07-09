@@ -285,7 +285,7 @@ func GetDirPathInodeId(cmd *cobra.Command, fsId uint32, path string, epoch uint6
 // get inode
 func GetInode(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, epoch uint64) (*mds.Inode, error) {
 	var endpoint []string
-	requestContext := &mds.Context{Epoch: epoch}
+	requestContext := &mds.Context{Epoch: epoch, IsBypassCache: true}
 
 	if IsFile(inodeId) && parent > 0 { // file: get endpoint by parent
 		endpoint = GetEndPoint(parent)
