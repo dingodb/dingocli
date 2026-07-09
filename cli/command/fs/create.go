@@ -69,6 +69,12 @@ type createOptions struct {
 	mdsnum        uint32
 	partitiontype mds.PartitionType
 
+	// extra options
+	trashdays           uint32
+	immediatetrashquota bool
+	enableuidgidmap     bool
+	enabledirstats      bool
+
 	format string
 }
 
@@ -137,6 +143,11 @@ func NewFsCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			// mdsnum
 			options.mdsnum = utils.GetUint32Flag(cmd, utils.DINGOFS_MDS_NUM)
+			// extra options
+			options.trashdays = utils.GetUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS)
+			options.immediatetrashquota = utils.GetBoolFlag(cmd, utils.DINGOFS_IMMEDIATE_TRASH_QUOTA)
+			options.enableuidgidmap = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_UID_GID_MAP)
+			options.enabledirstats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
 			//format
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
@@ -157,6 +168,10 @@ func NewFsCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 	utils.AddStringFlag(cmd, utils.DINGOFS_STORAGETYPE, "Filesystem storage type, should be: s3, rados")
 	utils.AddStringFlag(cmd, utils.DINGOFS_PARTITION_TYPE, "Filesystem partition type, should be: hash, monolithic")
 	utils.AddUint32Flag(cmd, utils.DINGOFS_MDS_NUM, "Specify filesystem expect mds numbers, only used for hash partition")
+	utils.AddUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS, "Trash retention days, 0 = disabled")
+	utils.AddBoolFlag(cmd, utils.DINGOFS_IMMEDIATE_TRASH_QUOTA, "Debit per-dir quota immediately at trash-move time")
+	utils.AddBoolFlag(cmd, utils.DINGOFS_ENABLE_UID_GID_MAP, "Enable uid/gid map for the filesystem")
+	utils.AddBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS, "Enable per-directory usage statistics")
 
 	utils.AddStringFlag(cmd, utils.DINGOFS_S3_AK, "S3 access key")
 	utils.AddStringFlag(cmd, utils.DINGOFS_S3_SK, "S3 secret key")
@@ -192,14 +207,18 @@ func runCreate(cmd *cobra.Command, dingocli *cli.DingoCli, options *createOption
 		return err
 	}
 	request := mds.CreateFsRequest{
-		FsName:        options.fsname,
-		BlockSize:     options.blocksize,
-		ChunkSize:     options.chunksize,
-		FsType:        options.fstype,
-		Owner:         "anonymous",
-		Capacity:      math.MaxInt32,
-		FsExtra:       &options.fsextra,
-		PartitionType: options.partitiontype,
+		FsName:              options.fsname,
+		BlockSize:           options.blocksize,
+		ChunkSize:           options.chunksize,
+		FsType:              options.fstype,
+		Owner:               "anonymous",
+		Capacity:            math.MaxInt32,
+		FsExtra:             &options.fsextra,
+		PartitionType:       options.partitiontype,
+		TrashDays:           options.trashdays,
+		ImmediateTrashQuota: options.immediatetrashquota,
+		EnableUidGidMap:     options.enableuidgidmap,
+		EnableDirStats:      options.enabledirstats,
 	}
 	if options.fsid > 0 {
 		request.FsId = options.fsid
