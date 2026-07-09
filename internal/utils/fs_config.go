@@ -82,6 +82,26 @@ const (
 	VIPER_DINGOFS_MDS_NUM   = "dingofs.mdsnum"
 	DINGOFS_DEFAULT_MDS_NUM = uint32(0)
 
+	// trash days
+	DINGOFS_TRASH_DAYS         = "trashdays"
+	VIPER_DINGOFS_TRASH_DAYS   = "dingofs.trashdays"
+	DINGOFS_DEFAULT_TRASH_DAYS = uint32(0)
+
+	// immediate trash quota
+	DINGOFS_IMMEDIATE_TRASH_QUOTA         = "immediatetrashquota"
+	VIPER_DINGOFS_IMMEDIATE_TRASH_QUOTA   = "dingofs.immediatetrashquota"
+	DINGOFS_DEFAULT_IMMEDIATE_TRASH_QUOTA = false
+
+	// enable uid/gid map
+	DINGOFS_ENABLE_UID_GID_MAP         = "enableuidgidmap"
+	VIPER_DINGOFS_ENABLE_UID_GID_MAP   = "dingofs.enableuidgidmap"
+	DINGOFS_DEFAULT_ENABLE_UID_GID_MAP = false
+
+	// enable dir stats
+	DINGOFS_ENABLE_DIR_STATS         = "enabledirstats"
+	VIPER_DINGOFS_ENABLE_DIR_STATS   = "dingofs.enabledirstats"
+	DINGOFS_DEFAULT_ENABLE_DIR_STATS = false
+
 	DINGOFS_THREADS                = "threads"
 	VIPER_DINGOFS_THREADS          = "dingofs.threads"
 	DINGOFS_DEFAULT_THREADS        = uint32(8)
@@ -194,6 +214,12 @@ var (
 
 		// mds numbers
 		DINGOFS_MDS_NUM: VIPER_DINGOFS_MDS_NUM,
+
+		// fs create extra
+		DINGOFS_TRASH_DAYS:            VIPER_DINGOFS_TRASH_DAYS,
+		DINGOFS_IMMEDIATE_TRASH_QUOTA: VIPER_DINGOFS_IMMEDIATE_TRASH_QUOTA,
+		DINGOFS_ENABLE_UID_GID_MAP:    VIPER_DINGOFS_ENABLE_UID_GID_MAP,
+		DINGOFS_ENABLE_DIR_STATS:      VIPER_DINGOFS_ENABLE_DIR_STATS,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		// rpc
@@ -236,6 +262,12 @@ var (
 
 		// mds numbers
 		DINGOFS_MDS_NUM: DINGOFS_DEFAULT_MDS_NUM,
+
+		// fs create extra
+		DINGOFS_TRASH_DAYS:            DINGOFS_DEFAULT_TRASH_DAYS,
+		DINGOFS_IMMEDIATE_TRASH_QUOTA: DINGOFS_DEFAULT_IMMEDIATE_TRASH_QUOTA,
+		DINGOFS_ENABLE_UID_GID_MAP:    DINGOFS_DEFAULT_ENABLE_UID_GID_MAP,
+		DINGOFS_ENABLE_DIR_STATS:      DINGOFS_DEFAULT_ENABLE_DIR_STATS,
 	}
 )
 
