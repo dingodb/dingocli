@@ -135,6 +135,30 @@ type RmDirRpc struct {
 	mdsClient mds.MDSServiceClient
 }
 
+type GetDirStatRpc struct {
+	Info      *Rpc
+	Request   *mds.GetDirStatRequest
+	mdsClient mds.MDSServiceClient
+}
+
+type SyncDirStatRpc struct {
+	Info      *Rpc
+	Request   *mds.SyncDirStatRequest
+	mdsClient mds.MDSServiceClient
+}
+
+type UpdateFsInfoRpc struct {
+	Info      *Rpc
+	Request   *mds.UpdateFsInfoRequest
+	mdsClient mds.MDSServiceClient
+}
+
+type ReadSliceRpc struct {
+	Info      *Rpc
+	Request   *mds.ReadSliceRequest
+	mdsClient mds.MDSServiceClient
+}
+
 // check interface
 var _ RpcFunc = (*GetMdsRpc)(nil)         // check interface
 var _ RpcFunc = (*CreateFsRpc)(nil)       // check interface
@@ -156,6 +180,10 @@ var _ RpcFunc = (*ListDirQuotaRpc)(nil)   // check interface
 var _ RpcFunc = (*DeleteDirQuotaRpc)(nil) // check interface
 var _ RpcFunc = (*UnlinkFileRpc)(nil)     // check interface
 var _ RpcFunc = (*RmDirRpc)(nil)          // check interface
+var _ RpcFunc = (*GetDirStatRpc)(nil)     // check interface
+var _ RpcFunc = (*SyncDirStatRpc)(nil)    // check interface
+var _ RpcFunc = (*UpdateFsInfoRpc)(nil)   // check interface
+var _ RpcFunc = (*ReadSliceRpc)(nil)      // check interface
 
 func (mdsFs *GetMDSRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	mdsFs.mdsClient = mds.NewMDSServiceClient(cc)
@@ -364,5 +392,45 @@ func (rmDir *RmDirRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (rmDir *RmDirRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := rmDir.mdsClient.RmDir(ctx, rmDir.Request)
 	output.ShowRpcData(rmDir.Request, response, rmDir.Info.RpcDataShow)
+	return response, err
+}
+
+func (getDirStat *GetDirStatRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	getDirStat.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (getDirStat *GetDirStatRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := getDirStat.mdsClient.GetDirStat(ctx, getDirStat.Request)
+	output.ShowRpcData(getDirStat.Request, response, getDirStat.Info.RpcDataShow)
+	return response, err
+}
+
+func (syncDirStat *SyncDirStatRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	syncDirStat.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (syncDirStat *SyncDirStatRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := syncDirStat.mdsClient.SyncDirStat(ctx, syncDirStat.Request)
+	output.ShowRpcData(syncDirStat.Request, response, syncDirStat.Info.RpcDataShow)
+	return response, err
+}
+
+func (updateFsInfo *UpdateFsInfoRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	updateFsInfo.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (updateFsInfo *UpdateFsInfoRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := updateFsInfo.mdsClient.UpdateFsInfo(ctx, updateFsInfo.Request)
+	output.ShowRpcData(updateFsInfo.Request, response, updateFsInfo.Info.RpcDataShow)
+	return response, err
+}
+
+func (readSlice *ReadSliceRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	readSlice.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (readSlice *ReadSliceRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := readSlice.mdsClient.ReadSlice(ctx, readSlice.Request)
+	output.ShowRpcData(readSlice.Request, response, readSlice.Info.RpcDataShow)
 	return response, err
 }

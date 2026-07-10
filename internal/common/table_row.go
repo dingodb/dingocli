@@ -113,4 +113,17 @@ const (
 
 	// delete subdir
 	ROW_DELETE_INODES = "delete inodes"
+
+	// dir stats
+	ROW_FILES       = "files"
+	ROW_DIRS        = "dirs"
+	ROW_CHUNK_INDEX = "chunkIndex"
+	ROW_OBJECT_NAME = "objectName"
+	ROW_SLICE_ID    = "sliceId"
+	ROW_OFFSET      = "offset"
+	ROW_POS         = "pos"
+	ROW_WANT_INODES = "wantInodes"
+	ROW_WANT_LENGTH = "wantLength"
+	ROW_GOT_INODES  = "gotInodes"
+	ROW_GOT_LENGTH  = "gotLength"
 )

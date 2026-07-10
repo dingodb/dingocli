@@ -458,6 +458,246 @@ func GetDirSummarySize(cmd *cobra.Command, fsId uint32, inode uint64, summary *c
 	return err
 }
 
+// resolve a filesystem path to its inode, also returning the parent inode and
+// file type. Unlike GetDirPathInodeId, the final path component may be a file.
+// The router must be initialized (InitFsMDSRouter) before calling.
+func ResolvePathInode(cmd *cobra.Command, fsId uint32, fsPath string, epoch uint64) (ino uint64, parent uint64, fileType mds.FileType, err error) {
+	if fsPath == "" || fsPath == "/" {
+		return common.ROOTINODEID, common.ROOTINODEID, mds.FileType_DIRECTORY, nil
+	}
+
+	ino = common.ROOTINODEID
+	parent = common.ROOTINODEID
+	fileType = mds.FileType_DIRECTORY
+
+	for fsPath != "" {
+		names := strings.SplitN(fsPath, "/", 2)
+		if names[0] != "" {
+			dentry, dErr := GetDentry(cmd, fsId, ino, names[0], epoch)
+			if dErr != nil {
+				return 0, 0, fileType, dErr
+			}
+			parent = ino
+			ino = dentry.GetIno()
+			fileType = dentry.GetType()
+			// only a directory can have further path components
+			if len(names) == 2 && names[1] != "" && fileType != mds.FileType_DIRECTORY {
+				return 0, 0, fileType, syscall.ENOTDIR
+			}
+		}
+		if len(names) == 1 {
+			break
+		}
+		fsPath = names[1]
+	}
+
+	return ino, parent, fileType, nil
+}
+
+// GetDirStat reads the owner-maintained per-directory usage counters.
+func GetDirStat(cmd *cobra.Command, fsId uint32, inodeId uint64, epoch uint64) (*mds.DirStat, error) {
+	endpoint := GetEndPoint(inodeId)
+	if len(endpoint) == 0 {
+		return nil, fmt.Errorf("endpoint is null")
+	}
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "GetDirStat")
+	getDirStatRpc := &GetDirStatRpc{
+		Info: mdsRpc,
+		Request: &mds.GetDirStatRequest{
+			Context: &mds.Context{Epoch: epoch},
+			FsId:    fsId,
+			Ino:     inodeId,
+		},
+	}
+	response, rpcError := GetRpcResponse(getDirStatRpc.Info, getDirStatRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return nil, rpcError
+	}
+	result := response.(*mds.GetDirStatResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return nil, errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return result.GetDirStat(), nil
+}
+
+// DirTreeNode is one directory in a client-side aggregated subtree. Files/Dirs/
+// Length are recursive totals for the subtree rooted at this directory; Dirs
+// counts the directory itself. Children is populated only within the retained
+// depth.
+type DirTreeNode struct {
+	Ino      uint64         `json:"ino"`
+	Name     string         `json:"name"`
+	Files    uint64         `json:"files"`
+	Dirs     uint64         `json:"dirs"`
+	Length   uint64         `json:"length"`
+	Children []*DirTreeNode `json:"children,omitempty"`
+}
+
+// WalkDirTree recursively aggregates a directory subtree on the client. The mds
+// has no server-side tree-summary rollup (GetTreeSummary is not implemented), so
+// the CLI walks the tree itself, mirroring dingo-mds-client.
+//
+// useFast reads the owner-maintained per-directory counters via GetDirStat for
+// each level (requires the fs to have dir-stats enabled); otherwise a strict
+// single-level dentry scan sums file lengths directly. keepDepth controls how
+// many levels of Children are retained (0 = totals only; negative = none).
+// The router must be initialized (InitFsMDSRouter) before calling.
+func WalkDirTree(cmd *cobra.Command, fsId uint32, inodeId uint64, name string, useFast bool, keepDepth int, epoch uint64) (*DirTreeNode, error) {
+	node := &DirTreeNode{Ino: inodeId, Name: name}
+
+	var filesHere, lengthHere uint64
+	var subdirs []*mds.Dentry
+
+	if useFast {
+		dirStat, err := GetDirStat(cmd, fsId, inodeId, epoch)
+		if err != nil {
+			return nil, err
+		}
+		inodes := uint64(dirStat.GetInodes())
+		dirsDirect := uint64(dirStat.GetDirs())
+		if inodes >= dirsDirect {
+			filesHere = inodes - dirsDirect
+		}
+		lengthHere = uint64(dirStat.GetLength())
+
+		entries, entErr := ListDentry(cmd, fsId, inodeId, epoch)
+		if entErr != nil {
+			return nil, entErr
+		}
+		for _, e := range entries {
+			if e.GetType() == mds.FileType_DIRECTORY {
+				subdirs = append(subdirs, e)
+			}
+		}
+	} else {
+		entries, entErr := ListDentry(cmd, fsId, inodeId, epoch)
+		if entErr != nil {
+			return nil, entErr
+		}
+		for _, e := range entries {
+			if e.GetType() == mds.FileType_DIRECTORY {
+				subdirs = append(subdirs, e)
+				continue
+			}
+			filesHere++
+			inodeAttr, iErr := GetInode(cmd, fsId, e.GetIno(), e.GetParent(), epoch)
+			if iErr != nil {
+				return nil, iErr
+			}
+			lengthHere += inodeAttr.GetLength()
+		}
+	}
+
+	var childFiles, childDirs, childLength uint64
+	for _, sd := range subdirs {
+		childNode, err := WalkDirTree(cmd, fsId, sd.GetIno(), sd.GetName(), useFast, keepDepth-1, epoch)
+		if err != nil {
+			return nil, err
+		}
+		childFiles += childNode.Files
+		childDirs += childNode.Dirs
+		childLength += childNode.Length
+		if keepDepth > 0 {
+			node.Children = append(node.Children, childNode)
+		}
+	}
+
+	node.Files = filesHere + childFiles
+	node.Dirs = 1 + childDirs
+	node.Length = lengthHere + childLength
+
+	return node, nil
+}
+
+// SyncDirStat reconciles the stored dir-stat counters against a fresh dentry
+// scan on the owner mds, optionally repairing mismatches.
+func SyncDirStat(cmd *cobra.Command, fsId uint32, inodeId uint64, repair bool, epoch uint64) ([]*mds.DirStatMismatch, error) {
+	endpoint := GetEndPoint(inodeId)
+	if len(endpoint) == 0 {
+		return nil, fmt.Errorf("endpoint is null")
+	}
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "SyncDirStat")
+	syncDirStatRpc := &SyncDirStatRpc{
+		Info: mdsRpc,
+		Request: &mds.SyncDirStatRequest{
+			Context: &mds.Context{Epoch: epoch, IsBypassCache: true},
+			FsId:    fsId,
+			Ino:     inodeId,
+			Repair:  repair,
+		},
+	}
+	response, rpcError := GetRpcResponse(syncDirStatRpc.Info, syncDirStatRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return nil, rpcError
+	}
+	result := response.(*mds.SyncDirStatResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return nil, errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return result.GetMismatches(), nil
+}
+
+// ReadSliceAll reads all chunk slices of a file inode. The file's endpoint is
+// routed by its parent inode.
+func ReadSliceAll(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64, chunkNum uint32, epoch uint64) ([]*mds.Chunk, error) {
+	endpoint := GetEndPoint(parent)
+	if len(endpoint) == 0 {
+		return nil, fmt.Errorf("endpoint is null")
+	}
+	chunkDescriptors := make([]*mds.ChunkDescriptor, 0, chunkNum)
+	for i := uint32(0); i < chunkNum; i++ {
+		chunkDescriptors = append(chunkDescriptors, &mds.ChunkDescriptor{Index: i})
+	}
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "ReadSlice")
+	readSliceRpc := &ReadSliceRpc{
+		Info: mdsRpc,
+		Request: &mds.ReadSliceRequest{
+			Context:          &mds.Context{Epoch: epoch, IsBypassCache: true},
+			FsId:             fsId,
+			Ino:              inodeId,
+			ChunkDescriptors: chunkDescriptors,
+		},
+	}
+	response, rpcError := GetRpcResponse(readSliceRpc.Info, readSliceRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return nil, rpcError
+	}
+	result := response.(*mds.ReadSliceResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return nil, errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return result.GetChunks(), nil
+}
+
+// UpdateFsInfo sends a full FsInfo back to the mds (read-modify-write); the
+// server merges runtime-mutable fields. This is fs-level, not inode-scoped.
+func UpdateFsInfo(cmd *cobra.Command, fsName string, fsInfo *mds.FsInfo) error {
+	mdsRpc, err := CreateNewMdsRpc(cmd, "UpdateFsInfo")
+	if err != nil {
+		return err
+	}
+	updateFsInfoRpc := &UpdateFsInfoRpc{
+		Info: mdsRpc,
+		Request: &mds.UpdateFsInfoRequest{
+			FsName: fsName,
+			FsInfo: fsInfo,
+		},
+	}
+	response, rpcError := GetRpcResponse(updateFsInfoRpc.Info, updateFsInfoRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return rpcError
+	}
+	result := response.(*mds.UpdateFsInfoResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return nil
+}
+
 // get directory size and inodes by path name
 func GetDirectorySizeAndInodes(cmd *cobra.Command, fsId uint32, dirInode uint64, isFsCheck bool, epoch uint64, threads uint32) (int64, int64, error) {
 	log.Printf("start to summary directory statistics, inode[%d]", dirInode)
