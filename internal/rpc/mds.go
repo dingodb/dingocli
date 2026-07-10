@@ -159,31 +159,45 @@ type ReadSliceRpc struct {
 	mdsClient mds.MDSServiceClient
 }
 
+type LookupRpc struct {
+	Info      *Rpc
+	Request   *mds.LookupRequest
+	mdsClient mds.MDSServiceClient
+}
+
+type RestoreFromTrashRpc struct {
+	Info      *Rpc
+	Request   *mds.RestoreFromTrashRequest
+	mdsClient mds.MDSServiceClient
+}
+
 // check interface
-var _ RpcFunc = (*GetMdsRpc)(nil)         // check interface
-var _ RpcFunc = (*CreateFsRpc)(nil)       // check interface
-var _ RpcFunc = (*DeleteFsRpc)(nil)       // check interface
-var _ RpcFunc = (*ListFsRpc)(nil)         // check interface
-var _ RpcFunc = (*GetFsRpc)(nil)          // check interface
-var _ RpcFunc = (*GetMdsRpc)(nil)         // check interface
-var _ RpcFunc = (*SetFsQuotaRpc)(nil)     // check interface
-var _ RpcFunc = (*GetFsQuotaRpc)(nil)     // check interface
-var _ RpcFunc = (*GetInodeRpc)(nil)       // check interface
-var _ RpcFunc = (*MkDirRpc)(nil)          // check interface
-var _ RpcFunc = (*GetDentryRpc)(nil)      // check interface
-var _ RpcFunc = (*ListDentryRpc)(nil)     // check interface
-var _ RpcFunc = (*GetFsStatsRpc)(nil)     // check interface
-var _ RpcFunc = (*UmountFsRpc)(nil)       // check interface
-var _ RpcFunc = (*SetDirQuotaRpc)(nil)    // check interface
-var _ RpcFunc = (*GetDirQuotaRpc)(nil)    // check interface
-var _ RpcFunc = (*ListDirQuotaRpc)(nil)   // check interface
-var _ RpcFunc = (*DeleteDirQuotaRpc)(nil) // check interface
-var _ RpcFunc = (*UnlinkFileRpc)(nil)     // check interface
-var _ RpcFunc = (*RmDirRpc)(nil)          // check interface
-var _ RpcFunc = (*GetDirStatRpc)(nil)     // check interface
-var _ RpcFunc = (*SyncDirStatRpc)(nil)    // check interface
-var _ RpcFunc = (*UpdateFsInfoRpc)(nil)   // check interface
-var _ RpcFunc = (*ReadSliceRpc)(nil)      // check interface
+var _ RpcFunc = (*GetMdsRpc)(nil)           // check interface
+var _ RpcFunc = (*CreateFsRpc)(nil)         // check interface
+var _ RpcFunc = (*DeleteFsRpc)(nil)         // check interface
+var _ RpcFunc = (*ListFsRpc)(nil)           // check interface
+var _ RpcFunc = (*GetFsRpc)(nil)            // check interface
+var _ RpcFunc = (*GetMdsRpc)(nil)           // check interface
+var _ RpcFunc = (*SetFsQuotaRpc)(nil)       // check interface
+var _ RpcFunc = (*GetFsQuotaRpc)(nil)       // check interface
+var _ RpcFunc = (*GetInodeRpc)(nil)         // check interface
+var _ RpcFunc = (*MkDirRpc)(nil)            // check interface
+var _ RpcFunc = (*GetDentryRpc)(nil)        // check interface
+var _ RpcFunc = (*ListDentryRpc)(nil)       // check interface
+var _ RpcFunc = (*GetFsStatsRpc)(nil)       // check interface
+var _ RpcFunc = (*UmountFsRpc)(nil)         // check interface
+var _ RpcFunc = (*SetDirQuotaRpc)(nil)      // check interface
+var _ RpcFunc = (*GetDirQuotaRpc)(nil)      // check interface
+var _ RpcFunc = (*ListDirQuotaRpc)(nil)     // check interface
+var _ RpcFunc = (*DeleteDirQuotaRpc)(nil)   // check interface
+var _ RpcFunc = (*UnlinkFileRpc)(nil)       // check interface
+var _ RpcFunc = (*RmDirRpc)(nil)            // check interface
+var _ RpcFunc = (*GetDirStatRpc)(nil)       // check interface
+var _ RpcFunc = (*SyncDirStatRpc)(nil)      // check interface
+var _ RpcFunc = (*UpdateFsInfoRpc)(nil)     // check interface
+var _ RpcFunc = (*ReadSliceRpc)(nil)        // check interface
+var _ RpcFunc = (*LookupRpc)(nil)           // check interface
+var _ RpcFunc = (*RestoreFromTrashRpc)(nil) // check interface
 
 func (mdsFs *GetMDSRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 	mdsFs.mdsClient = mds.NewMDSServiceClient(cc)
@@ -432,5 +446,25 @@ func (readSlice *ReadSliceRpc) NewRpcClient(cc grpc.ClientConnInterface) {
 func (readSlice *ReadSliceRpc) Stub_Func(ctx context.Context) (interface{}, error) {
 	response, err := readSlice.mdsClient.ReadSlice(ctx, readSlice.Request)
 	output.ShowRpcData(readSlice.Request, response, readSlice.Info.RpcDataShow)
+	return response, err
+}
+
+func (lookup *LookupRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	lookup.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (lookup *LookupRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := lookup.mdsClient.Lookup(ctx, lookup.Request)
+	output.ShowRpcData(lookup.Request, response, lookup.Info.RpcDataShow)
+	return response, err
+}
+
+func (restoreFromTrash *RestoreFromTrashRpc) NewRpcClient(cc grpc.ClientConnInterface) {
+	restoreFromTrash.mdsClient = mds.NewMDSServiceClient(cc)
+}
+
+func (restoreFromTrash *RestoreFromTrashRpc) Stub_Func(ctx context.Context) (interface{}, error) {
+	response, err := restoreFromTrash.mdsClient.RestoreFromTrash(ctx, restoreFromTrash.Request)
+	output.ShowRpcData(restoreFromTrash.Request, response, restoreFromTrash.Info.RpcDataShow)
 	return response, err
 }
