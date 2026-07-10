@@ -47,6 +47,8 @@ func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewFsSummaryCommand(dingocli),
 		NewFsSyncDirStatCommand(dingocli),
 		NewFsUpdateFsEnableDirStatsCommand(dingocli),
+		NewFsUpdateFsTrashDaysCommand(dingocli),
+		NewFsRestoreTrashCommand(dingocli),
 		config.NewFsCommand(dingocli),
 		quota.NewQuotaCommand(dingocli),
 		warmup.NewWarmupCommand(dingocli),

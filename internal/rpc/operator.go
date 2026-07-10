@@ -672,6 +672,68 @@ func ReadSliceAll(cmd *cobra.Command, fsId uint32, inodeId uint64, parent uint64
 	return result.GetChunks(), nil
 }
 
+// Lookup resolves a child name under a parent inode to its inode. Routed by
+// the parent inode's owner.
+func Lookup(cmd *cobra.Command, fsId uint32, parent uint64, name string, epoch uint64) (*mds.Inode, error) {
+	endpoint := GetEndPoint(parent)
+	if len(endpoint) == 0 {
+		return nil, fmt.Errorf("endpoint is null")
+	}
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "Lookup")
+	lookupRpc := &LookupRpc{
+		Info: mdsRpc,
+		Request: &mds.LookupRequest{
+			Context: &mds.Context{Epoch: epoch},
+			FsId:    fsId,
+			Parent:  parent,
+			Name:    name,
+		},
+	}
+	response, rpcError := GetRpcResponse(lookupRpc.Info, lookupRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return nil, rpcError
+	}
+	result := response.(*mds.LookupResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return nil, errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return result.GetInode(), nil
+}
+
+// RestoreFromTrash restores a single trash entry. The request is routed to the
+// mds owning origParent's partition so its caches are updated first-hand.
+func RestoreFromTrash(cmd *cobra.Command, fsId uint32, bucketIno uint64, trashName string, origParent uint64, allowTrashParent bool, carriedBytes uint64, carriedInodes uint64, epoch uint64) error {
+	endpoint := GetEndPoint(origParent)
+	if len(endpoint) == 0 {
+		return fmt.Errorf("no owner mds for parent(%d)", origParent)
+	}
+	mdsRpc := CreateNewMdsRpcWithEndPoint(cmd, endpoint, "RestoreFromTrash")
+	restoreRpc := &RestoreFromTrashRpc{
+		Info: mdsRpc,
+		Request: &mds.RestoreFromTrashRequest{
+			Context:          &mds.Context{Epoch: epoch},
+			FsId:             fsId,
+			TrashParent:      bucketIno,
+			TrashName:        trashName,
+			Uid:              0,
+			AllowTrashParent: allowTrashParent,
+			CarriedBytes:     carriedBytes,
+			CarriedInodes:    carriedInodes,
+		},
+	}
+	response, rpcError := GetRpcResponse(restoreRpc.Info, restoreRpc)
+	if rpcError.GetCode() != errno.ERR_OK.GetCode() {
+		return rpcError
+	}
+	result := response.(*mds.RestoreFromTrashResponse)
+	if mdsErr := result.GetError(); mdsErr.GetErrcode() != pbmdserror.Errno_OK {
+		return errno.ERR_RPC_FAILED.S(mdsErr.String())
+	}
+
+	return nil
+}
+
 // UpdateFsInfo sends a full FsInfo back to the mds (read-modify-write); the
 // server merges runtime-mutable fields. This is fs-level, not inode-scoped.
 func UpdateFsInfo(cmd *cobra.Command, fsName string, fsInfo *mds.FsInfo) error {

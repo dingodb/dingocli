@@ -168,4 +168,6 @@ type RpcOpions struct {
 // dingofs root inodeid
 const (
 	ROOTINODEID = uint64(1)
+	// trash root inode, mirrors kTrashInodeId in src/mds/common/trash.h
+	TRASHINODEID = uint64(0x7FFFFFFF00000003)
 )

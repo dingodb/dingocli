@@ -125,6 +125,17 @@ const (
 	VIPER_DINGOFS_REPAIR      = "dingofs.repair"
 	DINGOFS_DEFAULT_REPAIR    = false
 
+	// restore trash
+	DINGOFS_HOURS                   = "hours"
+	VIPER_DINGOFS_HOURS             = "dingofs.hours"
+	DINGOFS_DEFAULT_HOURS           = ""
+	DINGOFS_PUT_BACK                = "putback"
+	VIPER_DINGOFS_PUT_BACK          = "dingofs.putback"
+	DINGOFS_DEFAULT_PUT_BACK        = false
+	DINGOFS_RESTORE_THREADS         = "restorethreads"
+	VIPER_DINGOFS_RESTORE_THREADS   = "dingofs.restorethreads"
+	DINGOFS_DEFAULT_RESTORE_THREADS = uint32(10)
+
 	DINGOFS_THREADS                = "threads"
 	VIPER_DINGOFS_THREADS          = "dingofs.threads"
 	DINGOFS_DEFAULT_THREADS        = uint32(8)
@@ -252,6 +263,11 @@ var (
 		DINGOFS_DEPTH:     VIPER_DINGOFS_DEPTH,
 		DINGOFS_ENTRIES:   VIPER_DINGOFS_ENTRIES,
 		DINGOFS_REPAIR:    VIPER_DINGOFS_REPAIR,
+
+		// restore trash
+		DINGOFS_HOURS:           VIPER_DINGOFS_HOURS,
+		DINGOFS_PUT_BACK:        VIPER_DINGOFS_PUT_BACK,
+		DINGOFS_RESTORE_THREADS: VIPER_DINGOFS_RESTORE_THREADS,
 	}
 	FLAG2DEFAULT = map[string]interface{}{
 		// rpc
@@ -309,6 +325,11 @@ var (
 		DINGOFS_DEPTH:     DINGOFS_DEFAULT_DEPTH,
 		DINGOFS_ENTRIES:   DINGOFS_DEFAULT_ENTRIES,
 		DINGOFS_REPAIR:    DINGOFS_DEFAULT_REPAIR,
+
+		// restore trash
+		DINGOFS_HOURS:           DINGOFS_DEFAULT_HOURS,
+		DINGOFS_PUT_BACK:        DINGOFS_DEFAULT_PUT_BACK,
+		DINGOFS_RESTORE_THREADS: DINGOFS_DEFAULT_RESTORE_THREADS,
 	}
 )
 
