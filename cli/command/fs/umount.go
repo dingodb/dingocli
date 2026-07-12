@@ -42,7 +42,7 @@ func NewFsUmountCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "umount MOUNTPOINT [OPTIONS]",
-		Short:   "umount filesystem",
+		Short:   "Umount filesystem",
 		Args:    utils.ExactArgs(1),
 		Example: FS_UMOUNT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

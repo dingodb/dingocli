@@ -48,7 +48,7 @@ func NewFsUpdateFsTrashDaysCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "updatefstrashdays [OPTIONS]",
-		Short:   "update the trash retention days of a filesystem (0 = disabled)",
+		Short:   "Update the trash retention days of a filesystem (0 = disabled)",
 		Args:    utils.NoArgs,
 		Example: FS_UPDATE_TRASH_DAYS_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

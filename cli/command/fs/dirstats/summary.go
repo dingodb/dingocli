@@ -54,7 +54,7 @@ func NewDirstatsSummaryCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "summary [OPTIONS]",
-		Short:   "show a hierarchical usage summary of a directory tree",
+		Short:   "Show a hierarchical usage summary of a directory tree",
 		Args:    utils.NoArgs,
 		Example: FS_SUMMARY_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

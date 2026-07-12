@@ -50,7 +50,7 @@ func NewDirstatsSyncDirCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "syncdir [OPTIONS]",
-		Short:   "reconcile a directory's stored usage counters with a fresh scan",
+		Short:   "Reconcile a directory's stored usage counters with a fresh scan",
 		Args:    utils.NoArgs,
 		Example: FS_SYNCDIR_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -45,7 +45,7 @@ func NewFsMountpointCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "mountpoint [OPTIONS] ",
-		Short:   "list all mountpoints in the cluster",
+		Short:   "List all mountpoints in the cluster",
 		Args:    utils.NoArgs,
 		Example: FS_MOUNTPOINT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

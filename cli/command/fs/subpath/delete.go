@@ -57,7 +57,7 @@ func NewSubpathDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "delete [OPTIONS]",
-		Short:   "delete sub directory in filesystem",
+		Short:   "Delete sub directory in filesystem",
 		Args:    utils.ExactArgs(0),
 		Example: FS_DELETE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

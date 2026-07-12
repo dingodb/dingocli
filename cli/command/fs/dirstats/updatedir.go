@@ -44,7 +44,7 @@ func NewDirstatsUpdateDirCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "updatedir [OPTIONS]",
-		Short:   "enable or disable per-directory usage statistics for a filesystem",
+		Short:   "Enable or disable per-directory usage statistics for a filesystem",
 		Args:    utils.NoArgs,
 		Example: FS_UPDATEDIR_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

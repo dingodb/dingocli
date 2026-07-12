@@ -49,7 +49,7 @@ func NewFsQueryCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "query [OPTIONS]",
-		Short:   "query one fs info",
+		Short:   "Query one fs info",
 		Args:    utils.NoArgs,
 		Example: FS_QUERY_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

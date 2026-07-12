@@ -48,7 +48,7 @@ func NewFsQuotaSetCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "set [OPTIONS]",
-		Short:   "set fs quota",
+		Short:   "Set fs quota",
 		Args:    utils.NoArgs,
 		Example: FS_QUOTA_SET_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

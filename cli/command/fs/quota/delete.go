@@ -46,7 +46,7 @@ func NewQuotaDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "delete [OPTIONS]",
-		Short:   "delete directory quota",
+		Short:   "Delete directory quota",
 		Args:    utils.NoArgs,
 		Example: QUOTA_DELETE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

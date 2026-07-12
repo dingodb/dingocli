@@ -54,7 +54,7 @@ func NewFsMountCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:                "mount METAURL MOUNTPOINT [OPTIONS]",
-		Short:              "mount filesystem",
+		Short:              "Mount filesystem",
 		Args:               utils.RequiresMinArgs(0),
 		DisableFlagParsing: true,
 		Example:            FS_MOUNT_EXAMPLE,

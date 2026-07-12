@@ -49,7 +49,7 @@ func NewFsUsageCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "usage [OPTIONS]",
-		Short:   "get the filesystem usage",
+		Short:   "Get the filesystem usage",
 		Args:    utils.NoArgs,
 		Example: FS_USAGE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

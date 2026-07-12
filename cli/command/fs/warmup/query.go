@@ -49,7 +49,7 @@ func NewWarmupQueryCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "query [PATH] [OPTIONS]",
-		Short:   "query the warmup progress",
+		Short:   "Query the warmup progress",
 		Args:    utils.ExactArgs(1),
 		Example: WARMUP_QUERY_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

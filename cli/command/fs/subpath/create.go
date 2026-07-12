@@ -71,7 +71,7 @@ func NewSubpathCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "create [OPTIONS]",
-		Short:   "create sub directory in filesystem",
+		Short:   "Create sub directory in filesystem",
 		Args:    utils.ExactArgs(0),
 		Example: SUBPATH_CREATE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
