@@ -22,6 +22,7 @@ import (
 	"github.com/dingodb/dingocli/cli/command/fs/dirstats"
 	"github.com/dingodb/dingocli/cli/command/fs/quota"
 	"github.com/dingodb/dingocli/cli/command/fs/subpath"
+	"github.com/dingodb/dingocli/cli/command/fs/trash"
 	"github.com/dingodb/dingocli/cli/command/fs/warmup"
 	cliutil "github.com/dingodb/dingocli/internal/utils"
 	"github.com/spf13/cobra"
@@ -44,14 +45,13 @@ func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewFsUsageCommand(dingocli),
 		NewFsUmountCommand(dingocli),
 		NewFsMountCommand(dingocli),
-		NewFsUpdateFsTrashDaysCommand(dingocli),
-		NewFsRestoreTrashCommand(dingocli),
 		config.NewFsCommand(dingocli),
 		quota.NewQuotaCommand(dingocli),
 		warmup.NewWarmupCommand(dingocli),
 		subpath.NewSubpathCommand(dingocli),
 		NewStatsCommand(dingocli),
 		dirstats.NewDirstatsCommand(dingocli),
+		trash.NewTrashCommand(dingocli),
 	)
 
 	return cmd
