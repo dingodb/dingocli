@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package dirstats
 
 import (
 	"fmt"
@@ -29,24 +29,24 @@ import (
 )
 
 const (
-	FS_UPDATE_ENABLE_DIR_STATS_EXAMPLE = `Examples:
-$ dingo fs updatefsenabledirstats --fsname dingofs1 --enabledirstats=true`
+	FS_UPDATEDIR_EXAMPLE = `Examples:
+$ dingo fs dirstats updatedir --fsname dingofs1 --enabledirstats=true`
 )
 
-type updateEnableDirStatsOptions struct {
+type updateDirOptions struct {
 	fsname         string
 	enabledirstats bool
 	format         string
 }
 
-func NewFsUpdateFsEnableDirStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
-	var options updateEnableDirStatsOptions
+func NewDirstatsUpdateDirCommand(dingocli *cli.DingoCli) *cobra.Command {
+	var options updateDirOptions
 
 	cmd := &cobra.Command{
-		Use:     "updatefsenabledirstats [OPTIONS]",
+		Use:     "updatedir [OPTIONS]",
 		Short:   "enable or disable per-directory usage statistics for a filesystem",
 		Args:    utils.NoArgs,
-		Example: FS_UPDATE_ENABLE_DIR_STATS_EXAMPLE,
+		Example: FS_UPDATEDIR_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
@@ -59,7 +59,7 @@ func NewFsUpdateFsEnableDirStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
 			options.enabledirstats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
-			return runUpdateEnableDirStats(cmd, dingocli, options)
+			return runUpdateDir(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -84,7 +84,7 @@ func NewFsUpdateFsEnableDirStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-func runUpdateEnableDirStats(cmd *cobra.Command, dingocli *cli.DingoCli, options updateEnableDirStatsOptions) error {
+func runUpdateDir(cmd *cobra.Command, dingocli *cli.DingoCli, options updateDirOptions) error {
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,
 	}
