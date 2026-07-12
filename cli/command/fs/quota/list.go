@@ -48,7 +48,7 @@ func NewQuotaListCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "list [OPTIONS]",
-		Short:   "list all directory quota",
+		Short:   "List all directory quota",
 		Args:    utils.NoArgs,
 		Example: QUOTA_LIST_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

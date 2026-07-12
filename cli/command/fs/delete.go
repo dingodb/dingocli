@@ -46,7 +46,7 @@ func NewFsDeleteCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "delete FSNAME [OPTIONS]",
-		Short:   "delete fs from cluster",
+		Short:   "Delete fs from cluster",
 		Args:    utils.ExactArgs(1),
 		Example: FS_DELETE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

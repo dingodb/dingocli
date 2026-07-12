@@ -61,7 +61,7 @@ func NewDirstatsInfoCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "info [OPTIONS]",
-		Short:   "show usage of a directory or object layout of a file",
+		Short:   "Show usage of a directory or object layout of a file",
 		Args:    utils.NoArgs,
 		Example: FS_INFO_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

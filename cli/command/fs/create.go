@@ -83,7 +83,7 @@ func NewFsCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "create FSNAME [OPTIONS]",
-		Short:   "create fs in cluster",
+		Short:   "Create fs in cluster",
 		Args:    utils.ExactArgs(1),
 		Example: FS_CREATE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

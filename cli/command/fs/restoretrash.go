@@ -63,7 +63,7 @@ func NewFsRestoreTrashCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "restoretrash [OPTIONS]",
-		Short:   "restore entries from the trash (requires root)",
+		Short:   "Restore entries from the trash (requires root)",
 		Args:    utils.NoArgs,
 		Example: FS_RESTORE_TRASH_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

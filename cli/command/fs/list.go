@@ -46,7 +46,7 @@ func NewFsListCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "list [OPTIONS]",
-		Short:   "list all fs info",
+		Short:   "List all fs info",
 		Args:    utils.NoArgs,
 		Example: FS_LIST_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

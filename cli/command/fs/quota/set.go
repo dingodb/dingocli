@@ -50,7 +50,7 @@ func NewQuotaSetCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "set [OPTIONS]",
-		Short:   "set directory quota",
+		Short:   "Set directory quota",
 		Args:    utils.NoArgs,
 		Example: QUOTA_SET_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

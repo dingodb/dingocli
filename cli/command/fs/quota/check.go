@@ -49,7 +49,7 @@ func NewQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "check [OPTIONS]",
-		Short:   "check directory quota",
+		Short:   "Check directory quota",
 		Args:    utils.NoArgs,
 		Example: QUOTA_CHECK_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

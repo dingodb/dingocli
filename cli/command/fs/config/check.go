@@ -49,7 +49,7 @@ func NewFsQuotaCheckCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "check [OPTIONS]",
-		Short:   "check fs quota",
+		Short:   "Check fs quota",
 		Args:    utils.NoArgs,
 		Example: FS_QUOTA_CHECK_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {

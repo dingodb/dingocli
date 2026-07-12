@@ -116,7 +116,7 @@ func NewStatsCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "stats MOUNTPOINT [OPTIONS]",
-		Short:   "show real time performance statistics of mountpoint",
+		Short:   "Show real time performance statistics of mountpoint",
 		Args:    utils.ExactArgs(1),
 		Example: STATS_MOUNTPOINT_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
