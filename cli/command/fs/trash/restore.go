@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package trash
 
 import (
 	"fmt"
@@ -34,12 +34,12 @@ import (
 )
 
 const (
-	FS_RESTORE_TRASH_EXAMPLE = `Examples:
+	TRASH_RESTORE_EXAMPLE = `Examples:
 # tree-rebuild restore of two hour buckets (UTC)
-$ dingo fs restoretrash --fsname dingofs1 --hours 2026-04-05-14,2026-04-05-15
+$ dingo fs trash restore --fsname dingofs1 --hours 2026-04-05-14,2026-04-05-15
 
 # put every entry back to its live original parent
-$ dingo fs restoretrash --fsname dingofs1 --hours 2026-04-05-14 --putback --restorethreads 10`
+$ dingo fs trash restore --fsname dingofs1 --hours 2026-04-05-14 --putback --restorethreads 10`
 )
 
 type restoreTrashOptions struct {
@@ -58,14 +58,14 @@ type hourResult struct {
 	Failed   uint64 `json:"failed"`
 }
 
-func NewFsRestoreTrashCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewTrashRestoreCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options restoreTrashOptions
 
 	cmd := &cobra.Command{
-		Use:     "restoretrash [OPTIONS]",
+		Use:     "restore [OPTIONS]",
 		Short:   "Restore entries from the trash (requires root)",
 		Args:    utils.NoArgs,
-		Example: FS_RESTORE_TRASH_EXAMPLE,
+		Example: TRASH_RESTORE_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))

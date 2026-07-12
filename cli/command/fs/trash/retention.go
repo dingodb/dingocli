@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package trash
 
 import (
 	"fmt"
@@ -29,12 +29,12 @@ import (
 )
 
 const (
-	FS_UPDATE_TRASH_DAYS_EXAMPLE = `Examples:
+	TRASH_RETENTION_EXAMPLE = `Examples:
 # set trash retention to 7 days
-$ dingo fs updatefstrashdays --fsname dingofs1 --trashdays 7
+$ dingo fs trash retention --fsname dingofs1 --trashdays 7
 
 # disable the trash (0 empties the existing trash)
-$ dingo fs updatefstrashdays --fsname dingofs1 --trashdays 0`
+$ dingo fs trash retention --fsname dingofs1 --trashdays 0`
 )
 
 type updateTrashDaysOptions struct {
@@ -43,14 +43,14 @@ type updateTrashDaysOptions struct {
 	format    string
 }
 
-func NewFsUpdateFsTrashDaysCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewTrashRetentionCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options updateTrashDaysOptions
 
 	cmd := &cobra.Command{
-		Use:     "updatefstrashdays [OPTIONS]",
+		Use:     "retention [OPTIONS]",
 		Short:   "Update the trash retention days of a filesystem (0 = disabled)",
 		Args:    utils.NoArgs,
-		Example: FS_UPDATE_TRASH_DAYS_EXAMPLE,
+		Example: TRASH_RETENTION_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
