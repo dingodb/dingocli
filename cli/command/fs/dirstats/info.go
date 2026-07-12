@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package dirstats
 
 import (
 	"fmt"
@@ -34,17 +34,17 @@ import (
 const (
 	FS_INFO_EXAMPLE = `Examples:
 # directory usage (fast, dir-stats counters)
-$ dingo fs info --fsname dingofs1 --path /dir1
+$ dingo fs dirstats info --fsname dingofs1 --path /dir1
 
 # directory usage, authoritative single-level dentry scan
-$ dingo fs info --fsname dingofs1 --path /dir1 --strict
+$ dingo fs dirstats info --fsname dingofs1 --path /dir1 --strict
 
 # directory usage, recursive subtree aggregation
-$ dingo fs info --fsname dingofs1 --path /dir1 --recursive
+$ dingo fs dirstats info --fsname dingofs1 --path /dir1 --recursive
 
 # file object layout (default) or raw slices (--raw)
-$ dingo fs info --fsname dingofs1 --path /dir1/file.bin
-$ dingo fs info --fsname dingofs1 --path /dir1/file.bin --raw`
+$ dingo fs dirstats info --fsname dingofs1 --path /dir1/file.bin
+$ dingo fs dirstats info --fsname dingofs1 --path /dir1/file.bin --raw`
 )
 
 type infoOptions struct {
@@ -56,7 +56,7 @@ type infoOptions struct {
 	format    string
 }
 
-func NewFsInfoCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewDirstatsInfoCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options infoOptions
 
 	cmd := &cobra.Command{

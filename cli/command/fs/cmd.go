@@ -19,6 +19,7 @@ package fs
 import (
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/cli/command/fs/config"
+	"github.com/dingodb/dingocli/cli/command/fs/dirstats"
 	"github.com/dingodb/dingocli/cli/command/fs/quota"
 	"github.com/dingodb/dingocli/cli/command/fs/subpath"
 	"github.com/dingodb/dingocli/cli/command/fs/warmup"
@@ -43,10 +44,6 @@ func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewFsUsageCommand(dingocli),
 		NewFsUmountCommand(dingocli),
 		NewFsMountCommand(dingocli),
-		NewFsInfoCommand(dingocli),
-		NewFsSummaryCommand(dingocli),
-		NewFsSyncDirStatCommand(dingocli),
-		NewFsUpdateFsEnableDirStatsCommand(dingocli),
 		NewFsUpdateFsTrashDaysCommand(dingocli),
 		NewFsRestoreTrashCommand(dingocli),
 		config.NewFsCommand(dingocli),
@@ -54,6 +51,7 @@ func NewFSCommand(dingocli *cli.DingoCli) *cobra.Command {
 		warmup.NewWarmupCommand(dingocli),
 		subpath.NewSubpathCommand(dingocli),
 		NewStatsCommand(dingocli),
+		dirstats.NewDirstatsCommand(dingocli),
 	)
 
 	return cmd

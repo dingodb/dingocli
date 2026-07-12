@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package dirstats
 
 import (
 	"fmt"
@@ -34,7 +34,7 @@ import (
 
 const (
 	FS_SUMMARY_EXAMPLE = `Examples:
-$ dingo fs summary --fsname dingofs1 --path /dir1 --depth 3 --entries 20`
+$ dingo fs dirstats summary --fsname dingofs1 --path /dir1 --depth 3 --entries 20`
 
 	SUMMARY_MAX_DEPTH   = uint32(10)
 	SUMMARY_MAX_ENTRIES = uint32(100)
@@ -49,7 +49,7 @@ type summaryOptions struct {
 	format  string
 }
 
-func NewFsSummaryCommand(dingocli *cli.DingoCli) *cobra.Command {
+func NewDirstatsSummaryCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options summaryOptions
 
 	cmd := &cobra.Command{

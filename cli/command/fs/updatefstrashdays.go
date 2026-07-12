@@ -123,3 +123,11 @@ func runUpdateTrashDays(cmd *cobra.Command, dingocli *cli.DingoCli, options upda
 
 	return nil
 }
+
+// outputErr renders an error either as json or by returning the error code.
+func outputErr(format string, outputResult *common.OutputResult) error {
+	if format == "json" {
+		return output.OutputJson(outputResult)
+	}
+	return outputResult.Error
+}

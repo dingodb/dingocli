@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fs
+package dirstats
 
 import (
 	"fmt"
@@ -30,29 +30,29 @@ import (
 )
 
 const (
-	FS_SYNCDIRSTAT_EXAMPLE = `Examples:
+	FS_SYNCDIR_EXAMPLE = `Examples:
 # report mismatches between stored dir-stat counters and a fresh scan
-$ dingo fs syncdirstat --fsname dingofs1 --path /dir1
+$ dingo fs dirstats syncdir --fsname dingofs1 --path /dir1
 
 # repair the mismatches
-$ dingo fs syncdirstat --fsname dingofs1 --path /dir1 --repair`
+$ dingo fs dirstats syncdir --fsname dingofs1 --path /dir1 --repair`
 )
 
-type syncDirStatOptions struct {
+type syncDirOptions struct {
 	fsid   uint32
 	path   string
 	repair bool
 	format string
 }
 
-func NewFsSyncDirStatCommand(dingocli *cli.DingoCli) *cobra.Command {
-	var options syncDirStatOptions
+func NewDirstatsSyncDirCommand(dingocli *cli.DingoCli) *cobra.Command {
+	var options syncDirOptions
 
 	cmd := &cobra.Command{
-		Use:     "syncdirstat [OPTIONS]",
+		Use:     "syncdir [OPTIONS]",
 		Short:   "reconcile a directory's stored usage counters with a fresh scan",
 		Args:    utils.NoArgs,
-		Example: FS_SYNCDIRSTAT_EXAMPLE,
+		Example: FS_SYNCDIR_EXAMPLE,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			utils.ReadCommandConfig(cmd)
 			output.SetShow(utils.GetBoolFlag(cmd, utils.VERBOSE))
@@ -66,7 +66,7 @@ func NewFsSyncDirStatCommand(dingocli *cli.DingoCli) *cobra.Command {
 			options.repair = utils.GetBoolFlag(cmd, utils.DINGOFS_REPAIR)
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
-			return runSyncDirStat(cmd, dingocli, options)
+			return runSyncDir(cmd, dingocli, options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -92,7 +92,7 @@ func NewFsSyncDirStatCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-func runSyncDirStat(cmd *cobra.Command, dingocli *cli.DingoCli, options syncDirStatOptions) error {
+func runSyncDir(cmd *cobra.Command, dingocli *cli.DingoCli, options syncDirOptions) error {
 	outputResult := &common.OutputResult{
 		Error: errno.ERR_OK,
 	}
