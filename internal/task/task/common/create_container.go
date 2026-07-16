@@ -33,6 +33,11 @@ import (
 )
 
 const (
+	// engine
+	ENGINE_DOCKER  = "docker"
+	ENGINE_PODMAN  = "podman"
+	ENGINE_NERDCTL = "nerdctl"
+
 	POLICY_ALWAYS_RESTART                        = "always"
 	POLICY_NEVER_RESTART                         = "no"
 	ENV_DINGOSTORE_SERVER_LISTEN_HOST            = "SERVER_LISTEN_HOST"
@@ -305,6 +310,13 @@ func configDingoVectorENV(envs []string, dc *topology.DeployConfig) []string {
 	return envs
 }
 
+func getInitFlag(engine string) bool {
+	if engine == ENGINE_NERDCTL {
+		return false
+	}
+	return true
+}
+
 func getUlimits() []string {
 	return []string{"nofile=1048576:1048576", "core=-1"}
 }
@@ -447,12 +459,13 @@ func NewCreateContainerTask(dingocli *cli.DingoCli, dc *topology.DeployConfig) (
 		ExecOptions: options,
 	})
 	t.AddStep(&step.CreateContainer{
-		Image:      dc.GetContainerImage(),
-		Command:    getContainerCMD(dc),
-		AddHost:    []string{fmt.Sprintf("%s:127.0.0.1", hostname)},
-		Envs:       GetEnvironments(dc),
-		Hostname:   hostname,
-		Init:       true,
+		Image:    dc.GetContainerImage(),
+		Command:  getContainerCMD(dc),
+		AddHost:  []string{fmt.Sprintf("%s:127.0.0.1", hostname)},
+		Envs:     GetEnvironments(dc),
+		Hostname: hostname,
+		// Init:       true,
+		Init:       getInitFlag(dingocli.Engine()),
 		Name:       hostname,
 		Privileged: true,
 		Restart:    getRestartPolicy(dc), // POLICY_ALWAYS_RESTART
@@ -511,7 +524,8 @@ func NewCreateMdsv2CliContainerTask(dingocli *cli.DingoCli, dc *topology.DeployC
 		AddHost:    []string{fmt.Sprintf("%s:127.0.0.1", hostname)},
 		Envs:       GetEnvironments(dc),
 		Hostname:   hostname,
-		Init:       true,
+		// Init:       true,
+		Init:       getInitFlag(dingocli.Engine()),
 		Name:       hostname,
 		Privileged: true,
 		Restart:    POLICY_NEVER_RESTART,
