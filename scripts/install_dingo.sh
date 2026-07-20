@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# usage: 
-# curl -sSL https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh | bash -s -- [--source=internal|github|local] [local_binary_path_if_source_is_local]
-# bash install_dingo.sh --source=internal|github|local [local_binary_path_if_source_is_local]
+# usage:
+# curl -sSL https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh | bash -s -- [--source=internal|github|local] [--branch=BRANCH] [local_binary_path_if_source_is_local]
+# bash install_dingo.sh --source=internal|github|local [--branch=BRANCH] [local_binary_path_if_source_is_local]
 
 ############################  GLOBAL VARIABLES
 g_color_yellow=$(printf '\033[33m')
@@ -13,7 +13,8 @@ g_bin_dir="${g_dingo_home}/bin"
 g_db_path="sqlite://${g_dingo_home}/data/dingocli.db"
 g_profile="${HOME}/.profile"
 g_internal_url="https://work.dingodb.top"
-g_github_url="https://github.com/dingodb/dingocli/releases/download/main/dingo"
+g_branch="${DINGO_BRANCH:-main}"
+g_github_url="https://github.com/dingodb/dingocli/releases/download/${g_branch}/dingo"
 g_upgrade="${DINGO_UPGRADE}"
 g_version="${DINGO_VERSION:=$g_latest_version}"
 g_download_url="${g_internal_url}/dingo.tar.gz"
@@ -183,6 +184,13 @@ main() {
                     die "Local binary file does not exist: $g_local_binary\n"
                 fi
             fi
+            shift
+            ;;
+            --branch=*)
+            g_branch="${arg#*=}"
+            # Update the GitHub URL with the new branch
+            g_github_url="https://github.com/dingodb/dingocli/releases/download/${g_branch}/dingo"
+            echo "Using branch: ${g_branch}"
             shift
             ;;
             *)

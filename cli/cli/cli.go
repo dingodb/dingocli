@@ -254,7 +254,7 @@ func (dingocli *DingoCli) Upgrade() (bool, error) {
 		return false, errno.ERR_CANCEL_OPERATION
 	}
 
-	err = tools.Upgrade(latestVersion)
+	err = tools.Upgrade(latestVersion, "")
 	if err != nil {
 		return false, err
 	}
