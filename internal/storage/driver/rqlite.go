@@ -17,6 +17,7 @@
 package driver
 
 import (
+	"os"
 	"strings"
 	"sync"
 
@@ -49,7 +50,31 @@ func NewRQLiteDB() *RQLiteDB {
 
 func (db *RQLiteDB) Open(url string) error {
 	connURL := "http://" + strings.TrimPrefix(url, "rqlite://")
+
+	// Temporarily unset proxy environment variables for rqlite connection
+	// since rqlite is an internal service and should not go through proxy
+	httpProxy := os.Getenv("http_proxy")
+	httpsProxy := os.Getenv("https_proxy")
+	noProxy := os.Getenv("no_proxy")
+
+	os.Unsetenv("http_proxy")
+	os.Unsetenv("https_proxy")
+	os.Unsetenv("HTTP_PROXY")
+	os.Unsetenv("HTTPS_PROXY")
+
 	conn, err := gorqlite.Open(connURL)
+
+	// Restore proxy environment variables
+	if httpProxy != "" {
+		os.Setenv("http_proxy", httpProxy)
+	}
+	if httpsProxy != "" {
+		os.Setenv("https_proxy", httpsProxy)
+	}
+	if noProxy != "" {
+		os.Setenv("no_proxy", noProxy)
+	}
+
 	if err != nil {
 		return err
 	}

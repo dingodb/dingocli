@@ -33,6 +33,7 @@ LDFLAGS += -extldflags "-static -fpic"
 LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.Version=3.1
 LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.CommitId=$(shell git rev-parse --short HEAD)
 LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.BuildTime=$(shell date +%Y-%m-%dT%H:%M:%S)
+LDFLAGS += -X github.com/dingodb/dingocli/cli/cli.Branch=$(shell git rev-parse --abbrev-ref HEAD)
 
 BUILD_FLAGS := -a
 BUILD_FLAGS += -trimpath
