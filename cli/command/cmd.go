@@ -39,17 +39,19 @@ var dingoExample = `Examples:
   $ dingo fs mount mds://ip:port/myfs /mnt # Mount myfs to local path /mnt
   $ dingo fs umount /mnt                   # Unmount filesystem from local path /mnt
   $ dingo cache start --id=<UUID>          # Start dingo-cache
-  $ dingo mds start --conf ./mds.conf  	   # Start mds with specified config file
+  $ dingo mds start --conf ./mds.conf      # Start mds with specified config file
   $ dingo cluster add c1                   # Add a cluster named 'c1'
   $ dingo cluster deploy                   # Deploy current cluster
   $ dingo cluster stop                     # Stop current cluster service
   $ dingo cluster clean                    # Clean current cluster
   $ dingo enter 6ff561598c6f               # Enter specified service container
-  $ dingo -u                               # Upgrade dingo itself to the latest version`
+  $ dingo -u                               # Upgrade dingo itself to the latest version
+  $ dingo -u --branch=dev                  # Upgrade dingo itself to the latest version from dev branch`
 
 type rootOptions struct {
 	debug   bool
 	upgrade bool
+	branch  string
 }
 
 func addSubCommands(cmd *cobra.Command, dingocli *cli.DingoCli) {
@@ -114,7 +116,7 @@ func NewDingoCliCommand(dingocli *cli.DingoCli) *cobra.Command {
 			if options.debug {
 				return errno.List()
 			} else if options.upgrade {
-				return tools.Upgrade2Latest(cli.CommitId)
+				return tools.Upgrade2Latest(cli.CommitId, options.branch)
 			} else if len(args) == 0 {
 				return cliutil.ShowHelp(dingocli.Err())(cmd, args)
 			}
@@ -130,6 +132,7 @@ func NewDingoCliCommand(dingocli *cli.DingoCli) *cobra.Command {
 	cmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	cmd.Flags().BoolVarP(&options.debug, "debug", "d", false, "Print debug information")
 	cmd.Flags().BoolVarP(&options.upgrade, "upgrade", "u", false, "Upgrade dingo itself to the latest version")
+	cmd.Flags().StringVar(&options.branch, "branch", "", "Branch to upgrade from (default: main)")
 
 	addSubCommands(cmd, dingocli)
 	setupRootCommand(cmd, dingocli)
