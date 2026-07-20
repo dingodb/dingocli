@@ -20,4 +20,5 @@ var (
 	Version   = "dev"
 	CommitId  = "unknown"
 	BuildTime = "unknown"
+	Branch    = "unknown"
 )
