@@ -110,7 +110,7 @@ func NewDingoCliCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Use:   "dingo [OPTIONS] COMMAND [ARGS...]",
 		Short: "Deploy and manage dingoFS cluster",
 		// Version: fmt.Sprintf("dingocli v%s, build %s", cli.Version, cli.CommitId),
-		Version: fmt.Sprintf("%s (commit: %s) \nBuild Date: %s", cli.Version, cli.CommitId, cli.BuildTime),
+		Version: fmt.Sprintf("%s (commit: %s, branch: %s) \nBuild Date: %s", cli.Version, cli.CommitId, cli.Branch, cli.BuildTime),
 		Example: dingoExample,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if options.debug {
