@@ -32,10 +32,12 @@ import (
 )
 
 const (
-	URL_LATEST_VERSION = "https://github.com/dingodb/dingocli/releases/download/main/commit_id" // TODO replace url
-	URL_INSTALL_SCRIPT = "https://raw.githubusercontent.com/dingodb/dingocli/main/scripts/install_dingo.sh"
-	ENV_DINGO_UPGRADE  = "DINGO_UPGRADE"
-	ENV_DINGO_VERSION  = "DINGO_VERSION"
+	URL_LATEST_VERSION_TEMPLATE = "https://github.com/dingodb/dingocli/releases/download/%s/commit_id"
+	URL_INSTALL_SCRIPT_TEMPLATE = "https://raw.githubusercontent.com/dingodb/dingocli/%s/scripts/install_dingo.sh"
+	ENV_DINGO_UPGRADE           = "DINGO_UPGRADE"
+	ENV_DINGO_VERSION           = "DINGO_VERSION"
+	ENV_DINGO_BRANCH            = "DINGO_BRANCH"
+	DEFAULT_BRANCH              = "main"
 )
 
 func calcVersion(v string) int {
@@ -62,13 +64,20 @@ func IsLatest(currentVersion, remoteVersion string) (error, bool) {
 	return nil, v1 >= v2
 }
 
-func GetLatestCommitId(currentCommit string) (string, error) {
+func GetLatestCommitId(currentCommit string, branch string) (string, error) {
+	// Default to main branch if not specified
+	if branch == "" {
+		branch = DEFAULT_BRANCH
+	}
+
+	url := fmt.Sprintf(URL_LATEST_VERSION_TEMPLATE, branch)
+
 	// get latest commit id from remote
 	client := resty.New()
 	client.SetTimeout(time.Duration(10 * time.Second)) // 10 seconds
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
-		Get(URL_LATEST_VERSION)
+		Get(url)
 
 	if err != nil {
 		fmt.Println("request error:", err)
@@ -77,7 +86,7 @@ func GetLatestCommitId(currentCommit string) (string, error) {
 
 	// check response content
 	if resp.StatusCode() != 200 {
-		return "", fmt.Errorf("failed to get latest commit, status code: %d", resp.StatusCode())
+		return "", fmt.Errorf("failed to get latest commit for branch '%s', status code: %d (check if branch exists)", branch, resp.StatusCode())
 	}
 	// trim newline character
 	latestCommitId := strings.TrimSuffix(string(resp.Body()), "\n")
@@ -92,14 +101,19 @@ func GetLatestCommitId(currentCommit string) (string, error) {
 	return latestCommitId, nil
 }
 
-func Upgrade2Latest(currentCommit string) error {
+func Upgrade2Latest(currentCommit string, branch string) error {
+	// Default to main branch if not specified
+	if branch == "" {
+		branch = DEFAULT_BRANCH
+	}
+
 	// Create a progress bar with actual file size
 	wg := sync.WaitGroup{}
 	p := mpb.New(mpb.WithWaitGroup(&wg), mpb.WithOutput(os.Stdout))
 	checkBar := p.New(1,
 		mpb.BarStyle().Lbound("").Filler("").Tip("").Padding("").Rbound(""),
 		mpb.PrependDecorators(
-			decor.Name("Checking for update: ", decor.WC{W: 20}),
+			decor.Name(fmt.Sprintf("Checking for update (branch: %s): ", branch), decor.WC{W: 40}),
 			decor.OnComplete(decor.Spinner([]string{}), ""),
 			//decor.Spinner([]string{"-", "\\", "|", "/"}, decor.WCSyncSpace),
 		),
@@ -108,7 +122,7 @@ func Upgrade2Latest(currentCommit string) error {
 		),
 	)
 
-	version, err := GetLatestCommitId(currentCommit)
+	version, err := GetLatestCommitId(currentCommit, branch)
 	if err != nil {
 		checkBar.Abort(true)
 		p.Wait()
@@ -118,40 +132,40 @@ func Upgrade2Latest(currentCommit string) error {
 	if len(version) == 0 {
 		checkBar.Abort(true)
 		p.Wait()
-		fmt.Println("The current version is up-to-date")
+		fmt.Printf("The current version is up-to-date with branch '%s'\n", branch)
 		return nil
 	}
 	checkBar.Abort(true)
 	p.Wait()
 
-	if pass := tui.ConfirmYes("Upgrade dingocli to %s?", version); !pass {
+	if pass := tui.ConfirmYes("Upgrade dingocli to %s (branch: %s)?", version, branch); !pass {
 		return nil
 	}
 
 	// Step 2: Download new version
-	//downloadBar := p.AddBar(100,
-	//	mpb.PrependDecorators(
-	//		decor.Name("Downloading update", decor.WC{W: 20}),
-	//		decor.CountersNoUnit("%d / %d", decor.WCSyncWidth),
-	//	),
-	//	mpb.AppendDecorators(
-	//		decor.EwmaSpeed(decor.UnitKiB, "% .2f", 60),
-	//		decor.Percentage(decor.WCSyncSpace),
-	//	),
-	//)
+	installScriptURL := fmt.Sprintf(URL_INSTALL_SCRIPT_TEMPLATE, branch)
 
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash", URL_INSTALL_SCRIPT))
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash -s -- --branch=%s", installScriptURL, branch))
 	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGO_UPGRADE))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_VERSION, version))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_BRANCH, branch))
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
 }
 
-func Upgrade(version string) error {
-	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash", URL_INSTALL_SCRIPT))
+func Upgrade(version string, branch string) error {
+	// Default to main branch if not specified
+	if branch == "" {
+		branch = DEFAULT_BRANCH
+	}
+
+	installScriptURL := fmt.Sprintf(URL_INSTALL_SCRIPT_TEMPLATE, branch)
+
+	cmd := exec.Command("/bin/bash", "-c", fmt.Sprintf("curl -fsSL %s | bash -s -- --branch=%s", installScriptURL, branch))
 	cmd.Env = append(os.Environ(), fmt.Sprintf("%s=true", ENV_DINGO_UPGRADE))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_VERSION, version))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", ENV_DINGO_BRANCH, branch))
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	return cmd.Run()
