@@ -43,18 +43,11 @@ func (b *BinaryRepoData) GetCommits() map[string]BinaryDetail {
 }
 
 func (b *BinaryRepoData) GetLatest() (string, *BinaryDetail, bool) {
-	latest := "v0.0.0"
-	for version := range b.Tags {
-		if version > latest {
-			latest = version
-		}
-	}
-
+	latest := "latest"
 	tag, ok := b.Tags[latest]
 	if ok {
 		return latest, &tag, true
 	}
-
 	return "", nil, false
 }
 
