@@ -47,6 +47,9 @@ func prepareOptions(dingocli *cli.DingoCli, host string, become bool, extra map[
 
 	opts := []string{
 		"-o StrictHostKeyChecking=no",
+		"-o ConnectTimeout=10",
+		"-o ServerAliveInterval=5",
+		"-o ServerAliveCountMax=3",
 		//"-o UserKnownHostsFile=/dev/null",
 	}
 	if !config.ForwardAgent {
