@@ -196,7 +196,7 @@ func execute(dingocli *cli.DingoCli, options playbookOptions, idx int, hc *hosts
 	target := path.Join("/tmp", utils.RandString(8))
 	err := tools.Scp(dingocli, name, options.filepath, target)
 	if err != nil {
-		retC <- result{host: name, err: err}
+		retC <- result{index: idx, host: name, err: err}
 		return
 	}
 
