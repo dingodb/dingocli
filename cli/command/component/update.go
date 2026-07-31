@@ -60,7 +60,7 @@ func NewUpdateCommand(dingocli *cli.DingoCli) *cobra.Command {
 				return errors.New("no component specified")
 			}
 
-			return runUpdate(cmd, dingocli, &options)
+			return runUpdate(&options)
 		},
 		SilenceUsage:          false,
 		DisableFlagsInUseLine: true,
@@ -73,7 +73,7 @@ func NewUpdateCommand(dingocli *cli.DingoCli) *cobra.Command {
 	return cmd
 }
 
-func runUpdate(cmd *cobra.Command, dingocli *cli.DingoCli, options *updateOptions) error {
+func runUpdate(options *updateOptions) error {
 	componentManager, err := component.NewComponentManager()
 	if err != nil {
 		return err
