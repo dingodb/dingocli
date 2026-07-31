@@ -216,7 +216,12 @@ func (cm *ComponentManager) installOrUpdateComponent(name, version string, isUpd
 	// for update, return if already latest build
 	if isUpdate && existingComp != nil {
 		if version == LASTEST_VERSION {
-			return existingComp, ErrAlreadyExist
+			// For "latest" version, also check if commit ID matches
+			// to avoid skipping real updates when a new commit is pushed
+			if existingComp.Commit == binaryDetail.Commit {
+				return existingComp, ErrAlreadyExist
+			}
+			// If commit differs, fall through to BuildTime check below
 		}
 		if existingComp.Release >= binaryDetail.BuildTime {
 			return existingComp, ErrAlreadyLatest
