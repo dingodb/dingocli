@@ -114,11 +114,21 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 		}
 
 		logger.Infof("warmup result: total[%d], finished[%d], errors[%d]", total, finished, warmErrors)
-		if total == 0 { //finished
+
+		// The client keeps a finished task's status readable for several
+		// minutes, so total only drops to 0 long after the warmup itself is
+		// done. Waiting for that would stall the progress bar at 100% until
+		// the status expires; every block being accounted for is the real
+		// completion signal.
+		if total == 0 { // status already dropped by the client
 			break
 		}
 
 		bar.Set64(finished + warmErrors)
+
+		if finished+warmErrors >= total { // all blocks accounted for
+			break
+		}
 
 		time.Sleep(200 * time.Millisecond)
 	}
@@ -133,7 +143,7 @@ func runQuery(cmd *cobra.Command, dingocli *cli.DingoCli, options queryOptions) 
 }
 
 func getWarmupProgress(path string) (int64, int64, int64, error) {
-	// result data format [finished/total/errors]
+	// result data format [total/finished/errors]
 	logger.Infof("get warmup xattr")
 	result, err := xattr.Get(path, DINGOFS_WARMUP_OP_XATTR)
 	if err != nil {
@@ -144,7 +154,7 @@ func getWarmupProgress(path string) (int64, int64, int64, error) {
 	logger.Infof("warmup xattr: [%s],[total/finished/errors]", resultStr)
 	strs := strings.Split(resultStr, "/")
 	if len(strs) != 3 {
-		return 0, 0, 0, fmt.Errorf("response data format error, should be [finished/total/errors]")
+		return 0, 0, 0, fmt.Errorf("response data format error, should be [total/finished/errors]")
 	}
 	total, err := strconv.ParseInt(strs[0], 10, 64)
 	if err != nil {
