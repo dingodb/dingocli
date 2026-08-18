@@ -18,6 +18,7 @@ package monitor
 
 import (
 	"github.com/dingodb/dingocli/cli/cli"
+	comm "github.com/dingodb/dingocli/internal/common"
 	"github.com/dingodb/dingocli/internal/configure"
 	"github.com/dingodb/dingocli/internal/errno"
 	"github.com/dingodb/dingocli/internal/playbook"
@@ -31,7 +32,8 @@ import (
 
 const (
 	DEPLOY_EXAMPLE = `Examples:
-	$ dingo monitor deploy -c monitor.yaml    # deploy monitor for current cluster`
+	$ dingo monitor deploy -c monitor.yaml    # deploy monitor for current cluster
+	$ dingo monitor deploy -c monitor.yaml --skip-copy-monitor-dir    # init monitor_sync without copying the monitor directory from the config container`
 )
 
 var (
@@ -48,8 +50,9 @@ var (
 )
 
 type deployOptions struct {
-	filename      string
-	useLocalImage bool
+	filename           string
+	useLocalImage      bool
+	skipCopyMonitorDir bool
 }
 
 /*
@@ -79,6 +82,8 @@ func NewDeployCommand(dingocli *cli.DingoCli) *cobra.Command {
 	flags := cmd.Flags()
 	flags.StringVarP(&options.filename, "conf", "c", "monitor.yaml", "Specify monitor configuration file")
 	flags.BoolVar(&options.useLocalImage, "local", false, "Use local image")
+	flags.BoolVar(&options.skipCopyMonitorDir, "skip-copy-monitor-dir", false,
+		"Do not copy the monitor directory from the config container when initing monitor_sync")
 	return cmd
 }
 
@@ -103,6 +108,16 @@ func genDeployPlaybook(dingocli *cli.DingoCli,
 				ExecOptions: tasks.ExecOptions{
 					SilentMainBar: true,
 					SilentSubBar:  true,
+				},
+			})
+			continue
+		}
+		if step == playbook.SYNC_MONITOR_ORIGIN_CONFIG && options.skipCopyMonitorDir {
+			pb.AddStep(&playbook.PlaybookStep{
+				Type:    step,
+				Configs: mcs,
+				Options: map[string]interface{}{
+					comm.KEY_SKIP_COPY_MONITOR_DIR: true,
 				},
 			})
 			continue

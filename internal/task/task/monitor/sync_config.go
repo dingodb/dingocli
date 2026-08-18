@@ -176,7 +176,9 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*t
 		})
 
 		t.AddStep(&step.Command{
-			Command:     fmt.Sprintf("bash %s/sync_prometheus.sh %s/prometheus.yml %s", cfg.GetConfDir(), cfg.GetConfDir(), nodeExporterAddrs),
+			// quote the addrs argument: it contains '[...]' which zsh would
+			// treat as a glob pattern and reject with 'no matches found'
+			Command:     fmt.Sprintf("bash %s/sync_prometheus.sh %s/prometheus.yml \"%s\"", cfg.GetConfDir(), cfg.GetConfDir(), nodeExporterAddrs),
 			Out:         &out,
 			ExecOptions: dingocli.ExecOptions(),
 		})
@@ -219,13 +221,19 @@ func NewSyncConfigTask(dingocli *cli.DingoCli, cfg *configure.MonitorConfig) (*t
 		})
 
 		hostMonitorDir := cfg.GetDataDir()
-		t.AddStep(&step.Step2CopyFilesFromContainer{ // copy monitor directory
-			ContainerId:   confContainerId,
-			Files:         &[]string{ORIGIN_MONITOR_PATH},
-			HostDestDir:   hostMonitorDir,
-			ExcludeParent: true,
-			ExecOptions:   dingocli.ExecOptions(),
-		})
+		skipCopyMonitorDir := false
+		if v := dingocli.MemStorage().Get(comm.KEY_SKIP_COPY_MONITOR_DIR); v != nil {
+			skipCopyMonitorDir, _ = v.(bool)
+		}
+		if !skipCopyMonitorDir {
+			t.AddStep(&step.Step2CopyFilesFromContainer{ // copy monitor directory
+				ContainerId:   confContainerId,
+				Files:         &[]string{ORIGIN_MONITOR_PATH},
+				HostDestDir:   hostMonitorDir,
+				ExcludeParent: true,
+				ExecOptions:   dingocli.ExecOptions(),
+			})
+		}
 
 		t.AddStep(&step.InstallFile{ // install start_monitor_sync script
 			HostDestPath: hostMonitorDir + "/start_monitor_sync.sh",
