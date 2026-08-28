@@ -31,15 +31,15 @@ import (
 const (
 	TRASH_RETENTION_EXAMPLE = `Examples:
 # set trash retention to 7 days
-$ dingo fs trash retention --fsname dingofs1 --trashdays 7
+$ dingo fs trash retention --fsname dingofs1 --trash-days 7
 
 # disable the trash (0 empties the existing trash)
-$ dingo fs trash retention --fsname dingofs1 --trashdays 0`
+$ dingo fs trash retention --fsname dingofs1 --trash-days 0`
 )
 
 type updateTrashDaysOptions struct {
 	fsname    string
-	trashdays uint32
+	trashDays uint32
 	format    string
 }
 
@@ -60,7 +60,7 @@ func NewTrashRetentionCommand(dingocli *cli.DingoCli) *cobra.Command {
 				return err
 			}
 			options.fsname = fsname
-			options.trashdays = utils.GetUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS)
+			options.trashDays = utils.GetUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS)
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
 			return runUpdateTrashDays(cmd, dingocli, options)
@@ -105,7 +105,7 @@ func runUpdateTrashDays(cmd *cobra.Command, dingocli *cli.DingoCli, options upda
 	}
 
 	// flip only trash_days and send the full FsInfo back
-	fsInfo.TrashDays = options.trashdays
+	fsInfo.TrashDays = options.trashDays
 	if updErr := rpc.UpdateFsInfo(cmd, options.fsname, fsInfo); updErr != nil {
 		outputResult.Error = errno.ERR_RPC_FAILED.S(updErr.Error())
 		return outputErr(options.format, outputResult)
@@ -113,13 +113,13 @@ func runUpdateTrashDays(cmd *cobra.Command, dingocli *cli.DingoCli, options upda
 
 	outputResult.Result = map[string]interface{}{
 		common.ROW_FS_NAME:       options.fsname,
-		utils.DINGOFS_TRASH_DAYS: options.trashdays,
+		utils.DINGOFS_TRASH_DAYS: options.trashDays,
 	}
 	if options.format == "json" {
 		return output.OutputJson(outputResult)
 	}
 
-	fmt.Printf("Successfully update filesystem %s trash_days to %d\n", options.fsname, options.trashdays)
+	fmt.Printf("Successfully update filesystem %s trash_days to %d\n", options.fsname, options.trashDays)
 
 	return nil
 }

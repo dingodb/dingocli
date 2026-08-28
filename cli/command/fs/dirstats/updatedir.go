@@ -30,12 +30,12 @@ import (
 
 const (
 	FS_UPDATEDIR_EXAMPLE = `Examples:
-$ dingo fs dirstats updatedir --fsname dingofs1 --enabledirstats=true`
+$ dingo fs dirstats updatedir --fsname dingofs1 --enable-dir-stats=true`
 )
 
 type updateDirOptions struct {
 	fsname         string
-	enabledirstats bool
+	enableDirStats bool
 	format         string
 }
 
@@ -56,7 +56,7 @@ func NewDirstatsUpdateDirCommand(dingocli *cli.DingoCli) *cobra.Command {
 				return err
 			}
 			options.fsname = fsname
-			options.enabledirstats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
+			options.enableDirStats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
 			return runUpdateDir(cmd, dingocli, options)
@@ -102,7 +102,7 @@ func runUpdateDir(cmd *cobra.Command, dingocli *cli.DingoCli, options updateDirO
 	}
 
 	// flip only enable_dir_stats and send the full FsInfo back
-	fsInfo.EnableDirStats = options.enabledirstats
+	fsInfo.EnableDirStats = options.enableDirStats
 	if updErr := rpc.UpdateFsInfo(cmd, options.fsname, fsInfo); updErr != nil {
 		outputResult.Error = errno.ERR_RPC_FAILED.S(updErr.Error())
 		return outputErr(options.format, outputResult)
@@ -110,13 +110,13 @@ func runUpdateDir(cmd *cobra.Command, dingocli *cli.DingoCli, options updateDirO
 
 	outputResult.Result = map[string]interface{}{
 		common.ROW_FS_NAME:             options.fsname,
-		utils.DINGOFS_ENABLE_DIR_STATS: options.enabledirstats,
+		utils.DINGOFS_ENABLE_DIR_STATS: options.enableDirStats,
 	}
 	if options.format == "json" {
 		return output.OutputJson(outputResult)
 	}
 
-	fmt.Printf("Successfully update filesystem %s enable_dir_stats to %v\n", options.fsname, options.enabledirstats)
+	fmt.Printf("Successfully update filesystem %s enable_dir_stats to %v\n", options.fsname, options.enableDirStats)
 
 	return nil
 }

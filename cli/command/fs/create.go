@@ -70,10 +70,10 @@ type createOptions struct {
 	partitiontype mds.PartitionType
 
 	// extra options
-	trashdays           uint32
-	immediatetrashquota bool
-	enableuidgidmap     bool
-	enabledirstats      bool
+	trashDays           uint32
+	immediateTrashQuota bool
+	enableUidGidMap     bool
+	enableDirStats      bool
 
 	format string
 }
@@ -144,10 +144,10 @@ func NewFsCreateCommand(dingocli *cli.DingoCli) *cobra.Command {
 			// mdsnum
 			options.mdsnum = utils.GetUint32Flag(cmd, utils.DINGOFS_MDS_NUM)
 			// extra options
-			options.trashdays = utils.GetUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS)
-			options.immediatetrashquota = utils.GetBoolFlag(cmd, utils.DINGOFS_IMMEDIATE_TRASH_QUOTA)
-			options.enableuidgidmap = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_UID_GID_MAP)
-			options.enabledirstats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
+			options.trashDays = utils.GetUint32Flag(cmd, utils.DINGOFS_TRASH_DAYS)
+			options.immediateTrashQuota = utils.GetBoolFlag(cmd, utils.DINGOFS_IMMEDIATE_TRASH_QUOTA)
+			options.enableUidGidMap = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_UID_GID_MAP)
+			options.enableDirStats = utils.GetBoolFlag(cmd, utils.DINGOFS_ENABLE_DIR_STATS)
 			//format
 			options.format = utils.GetStringFlag(cmd, utils.FORMAT)
 
@@ -215,10 +215,10 @@ func runCreate(cmd *cobra.Command, dingocli *cli.DingoCli, options *createOption
 		Capacity:            math.MaxInt32,
 		FsExtra:             &options.fsextra,
 		PartitionType:       options.partitiontype,
-		TrashDays:           options.trashdays,
-		ImmediateTrashQuota: options.immediatetrashquota,
-		EnableUidGidMap:     options.enableuidgidmap,
-		EnableDirStats:      options.enabledirstats,
+		TrashDays:           options.trashDays,
+		ImmediateTrashQuota: options.immediateTrashQuota,
+		EnableUidGidMap:     options.enableUidGidMap,
+		EnableDirStats:      options.enableDirStats,
 	}
 	if options.fsid > 0 {
 		request.FsId = options.fsid

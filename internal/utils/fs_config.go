@@ -83,23 +83,23 @@ const (
 	DINGOFS_DEFAULT_MDS_NUM = uint32(0)
 
 	// trash days
-	DINGOFS_TRASH_DAYS         = "trashdays"
-	VIPER_DINGOFS_TRASH_DAYS   = "dingofs.trashdays"
+	DINGOFS_TRASH_DAYS         = "trash-days"
+	VIPER_DINGOFS_TRASH_DAYS   = "dingofs.trash-days"
 	DINGOFS_DEFAULT_TRASH_DAYS = uint32(0)
 
 	// immediate trash quota
-	DINGOFS_IMMEDIATE_TRASH_QUOTA         = "immediatetrashquota"
-	VIPER_DINGOFS_IMMEDIATE_TRASH_QUOTA   = "dingofs.immediatetrashquota"
+	DINGOFS_IMMEDIATE_TRASH_QUOTA         = "immediate-trash-quota"
+	VIPER_DINGOFS_IMMEDIATE_TRASH_QUOTA   = "dingofs.immediate-trash-quota"
 	DINGOFS_DEFAULT_IMMEDIATE_TRASH_QUOTA = true
 
 	// enable uid/gid map
-	DINGOFS_ENABLE_UID_GID_MAP         = "enableuidgidmap"
-	VIPER_DINGOFS_ENABLE_UID_GID_MAP   = "dingofs.enableuidgidmap"
+	DINGOFS_ENABLE_UID_GID_MAP         = "enable-uidgid-map"
+	VIPER_DINGOFS_ENABLE_UID_GID_MAP   = "dingofs.enable-uidgid-map"
 	DINGOFS_DEFAULT_ENABLE_UID_GID_MAP = true
 
 	// enable dir stats
-	DINGOFS_ENABLE_DIR_STATS         = "enabledirstats"
-	VIPER_DINGOFS_ENABLE_DIR_STATS   = "dingofs.enabledirstats"
+	DINGOFS_ENABLE_DIR_STATS         = "enable-dir-stats"
+	VIPER_DINGOFS_ENABLE_DIR_STATS   = "dingofs.enable-dir-stats"
 	DINGOFS_DEFAULT_ENABLE_DIR_STATS = true
 
 	// dir stats commands (info/summary/syncdirstat)
