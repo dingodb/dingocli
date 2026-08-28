@@ -81,6 +81,14 @@ var (
 		START_MDSV2,
 	}
 
+	DINGOFS_MDS_TIKV_ONLY_DEPLOY_STEPS = []int{
+		CLEAN_PRECHECK_ENVIRONMENT,
+		PULL_IMAGE,
+		CREATE_CONTAINER,
+		SYNC_CONFIG,
+		START_MDSV2,
+	}
+
 	DINGOFS_MDSV2_FOLLOW_DEPLOY_STEPS = []int{
 		CLEAN_PRECHECK_ENVIRONMENT,
 		PULL_IMAGE,
@@ -261,6 +269,7 @@ func genDeployPlaybook(dingocli *cli.DingoCli,
 
 	switch kind {
 	case topology.KIND_DINGOFS:
+		isMdsv2 := dcs[0].GetCtx().Lookup(topology.CTX_KEY_MDS_VERSION) == topology.CTX_VAL_MDS_V2
 		if utils.Contains(roles, topology.ROLE_COORDINATOR) {
 			// mds v2 with coordinator/store
 			steps = DINGOFS_MDSV2_FOLLOW_DEPLOY_STEPS
@@ -268,8 +277,14 @@ func genDeployPlaybook(dingocli *cli.DingoCli,
 				// remove executor reference step which is the last step
 				steps = steps[:len(steps)-1]
 			}
-		} else if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
+		} else if isMdsv2 && utils.Contains(roles, topology.ROLE_FS_MDS) {
+			// mds v2 only, with or without mds cli (mds cli is not deployed
+			// when storage_engine is tikv)
 			steps = DINGOFS_MDSV2_ONLY_DEPLOY_STEPS
+			// if storage_engine is tikv, then use DINGOFS_MDS_TIKV_ONLY_DEPLOY_STEPS
+			if dcs[0].GetMdsStorageEngine() == "tikv" {
+				steps = DINGOFS_MDS_TIKV_ONLY_DEPLOY_STEPS
+			}
 		}
 	case topology.KIND_DINGOSTORE:
 		steps = DINGOSTORE_DEPLOY_STEPS
@@ -335,8 +350,9 @@ func serviceStats(dingocli *cli.DingoCli, dcs []*topology.DeployConfig) string {
 	switch kind {
 	case topology.KIND_DINGOFS:
 		roles := dingocli.GetRoles(dcs)
-		if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) {
-			// mds v2
+		if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) ||
+			(utils.Contains(roles, topology.ROLE_FS_MDS) && dcs[0].GetMdsStorageEngine() == "tikv") {
+			// mds v2 (tikv storage deploys mds without mds cli)
 			ncoordinator := count[topology.ROLE_COORDINATOR]
 			nstore := count[topology.ROLE_STORE]
 			nmds = count[topology.ROLE_FS_MDS]

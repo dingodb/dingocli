@@ -137,7 +137,10 @@ func displayStatus(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options
 	roles := dingocli.GetRoles(dcs)
 	isMdsv2 := dcs[0].GetCtx().Lookup(topology.CTX_KEY_MDS_VERSION) == topology.CTX_VAL_MDS_V2
 	isMdsv2Only := false
-	if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) && len(roles) == 2 {
+	// mds v2 only, with or without mds cli (mds cli is not deployed when
+	// storage_engine is tikv)
+	if isMdsv2 && utils.Contains(roles, topology.ROLE_FS_MDS) &&
+		!utils.Contains(roles, topology.ROLE_COORDINATOR) {
 		isMdsv2Only = true
 		excludeCols = append(excludeCols, "Data Dir")
 	}
@@ -175,7 +178,7 @@ func displayStatus(dingocli *cli.DingoCli, dcs []*topology.DeployConfig, options
 	switch dcs[0].GetKind() {
 	case topology.KIND_DINGOFS:
 		if isMdsv2 {
-			if utils.ContainsList(roles, []string{topology.ROLE_FS_MDS, topology.ROLE_FS_MDS_CLI}) {
+			if utils.Contains(roles, topology.ROLE_FS_MDS) {
 				// check mds's mds_storage_engine config is tikv
 				if dcs[0].GetRole() == topology.ROLE_FS_MDS && dcs[0].GetMdsStorageEngine() == "tikv" {
 					dingocli.WriteOutln("cluster name : %s", dingocli.ClusterName())

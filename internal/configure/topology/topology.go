@@ -77,6 +77,9 @@ var (
 		ROLE_FS_MDS,
 		ROLE_FS_MDS_CLI,
 	}
+	DINGOFS_MDS_ONLY_ROLES = []string{
+		ROLE_FS_MDS,
+	}
 	DINGOFS_MDSV2_FOLLOW_ROLES = []string{
 		ROLE_FS_MDS,
 		ROLE_COORDINATOR,
@@ -121,6 +124,18 @@ func newIfNil(config map[string]interface{}) map[string]interface{} {
 	return config
 }
 
+// getMdsStorageEngine returns the mds storage engine from the mds services
+// config, falling back to the global config, e.g. "tikv".
+func getMdsStorageEngine(topology *Topology) string {
+	if v, ok := newIfNil(topology.MdsServices.Config)[CONFIG_MDS_STORAGE_ENGINE.Key()].(string); ok {
+		return v
+	}
+	if v, ok := newIfNil(topology.Global)[CONFIG_MDS_STORAGE_ENGINE.Key()].(string); ok {
+		return v
+	}
+	return ""
+}
+
 func ParseTopology(data string, ctx *Context) ([]*DeployConfig, error) {
 	if len(data) == 0 {
 		return nil, errno.ERR_EMPTY_CLUSTER_TOPOLOGY
@@ -151,7 +166,14 @@ func ParseTopology(data string, ctx *Context) ([]*DeployConfig, error) {
 				ctx.Add(CTX_KEY_MDS_VERSION, CTX_VAL_MDS_V2)
 			}
 		} else if topology.EtcdServices.Deploy == nil {
-			roles = append(roles, DINGOFS_MDSV2_ONLY_ROLES...)
+			// mds v2 only, without coordinator/store and etcd
+			if getMdsStorageEngine(topology) == "tikv" {
+				// if storage_engine is tikv, no need to create meta tables,
+				// so deploy mds service only without mds cli
+				roles = append(roles, DINGOFS_MDS_ONLY_ROLES...)
+			} else {
+				roles = append(roles, DINGOFS_MDSV2_ONLY_ROLES...)
+			}
 			ctx.Add(CTX_KEY_MDS_VERSION, CTX_VAL_MDS_V2)
 		} else {
 			roles = append(roles, DINGOFS_ROLES...)

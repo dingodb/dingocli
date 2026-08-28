@@ -101,8 +101,9 @@ func genUpgradePlaybook(dingocli *cli.DingoCli,
 	}
 	steps := UPGRADE_PLAYBOOK_STEPS
 	roles := dingocli.GetRoles(dcs)
-	if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) {
-		// upgrade mds v2
+	if utils.Contains(roles, topology.ROLE_FS_MDS_CLI) ||
+		(utils.Contains(roles, topology.ROLE_FS_MDS) && dcs[0].GetMdsStorageEngine() == "tikv") {
+		// upgrade mds v2 (tikv storage deploys mds without mds cli)
 		steps = UPGRADE_STORE_FS_STEPS
 	}
 
