@@ -33,6 +33,7 @@ import (
 const (
 	DEPLOY_EXAMPLE = `Examples:
 	$ dingo monitor deploy -c monitor.yaml    # deploy monitor for current cluster
+	$ dingo monitor deploy -c monitor.yaml --role node_exporter    # deploy only node_exporter service
 	$ dingo monitor deploy -c monitor.yaml --skip-copy-monitor-dir    # init monitor_sync without copying the monitor directory from the config container`
 )
 
@@ -53,6 +54,9 @@ type deployOptions struct {
 	filename           string
 	useLocalImage      bool
 	skipCopyMonitorDir bool
+	id                 string
+	role               string
+	host               string
 }
 
 /*
@@ -84,11 +88,24 @@ func NewDeployCommand(dingocli *cli.DingoCli) *cobra.Command {
 	flags.BoolVar(&options.useLocalImage, "local", false, "Use local image")
 	flags.BoolVar(&options.skipCopyMonitorDir, "skip-copy-monitor-dir", false,
 		"Do not copy the monitor directory from the config container when initing monitor_sync")
+	flags.StringVar(&options.id, "id", "*", "Specify monitor service id")
+	flags.StringVar(&options.role, "role", "*", "Specify monitor service role (e.g. node_exporter)")
+	flags.StringVar(&options.host, "host", "*", "Specify monitor service host")
 	return cmd
 }
 
 func genDeployPlaybook(dingocli *cli.DingoCli,
 	mcs []*configure.MonitorConfig, options deployOptions) (*playbook.Playbook, error) {
+	// filter services by id/role/host, e.g. deploy only node_exporter
+	mcs = configure.FilterMonitorConfig(dingocli, mcs, configure.FilterMonitorOption{
+		Id:   options.id,
+		Role: options.role,
+		Host: options.host,
+	})
+	if len(mcs) == 0 {
+		return nil, errno.ERR_NO_SERVICES_MATCHED
+	}
+
 	steps := MONITOR_DEPLOY_STEPS
 	if options.useLocalImage {
 		// remove PULL_MONITOR_IMAGE step
