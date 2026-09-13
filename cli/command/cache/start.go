@@ -21,7 +21,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
 	compmgr "github.com/dingodb/dingocli/internal/component"
@@ -121,16 +120,12 @@ func runStart(cmd *cobra.Command, dingocli *cli.DingoCli, options startOptions) 
 		return err
 	}
 
-	// forground mode, wait process exit
-	if options.daemonize {
-		time.Sleep(2 * time.Second)
-		fmt.Println("Successfully start dingo-cache")
-		return nil
-	}
-
-	// wait process complete
+	// In daemon mode the parent exits only after the node reports readiness.
 	if err := oscmd.Wait(); err != nil {
 		return err
+	}
+	if options.daemonize {
+		fmt.Println("Successfully start dingo-cache")
 	}
 
 	return nil
