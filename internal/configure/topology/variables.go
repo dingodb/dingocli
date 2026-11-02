@@ -55,6 +55,7 @@ var (
 		{name: "service_replica_sequence"},
 		{name: "service_replica_sequence_with_offset"},
 		{name: "sequence_offset"},
+		{name: "service_replica_disk_sequence"},
 		{name: "service_replicas_sequence"},
 		{name: "service_instances_sequence"},
 		{name: "format_replica_sequence"},
@@ -228,6 +229,14 @@ func getValue(name string, dcs []*DeployConfig, idx int) string {
 		return strconv.Itoa(dc.GetInstancesSequence())
 	case "service_replica_sequence_with_offset":
 		return strconv.Itoa(dc.GetInstancesSequence() + dc.GetSeqOffset())
+	case "service_replica_disk_sequence":
+		// replicas are spread over disk_count disks round-robin, e.g. with
+		// disk_count=3 and sequence_offset=1, replica 0..5 -> 1,2,3,1,2,3
+		seq := dc.GetInstancesSequence()
+		if n := dc.GetDiskCount(); n > 0 {
+			seq %= n
+		}
+		return strconv.Itoa(seq + dc.GetSeqOffset())
 	case "service_replicas_sequence":
 		return strconv.Itoa(dc.GetInstancesSequence())
 	case "service_replicas_sequence_with_offset":
