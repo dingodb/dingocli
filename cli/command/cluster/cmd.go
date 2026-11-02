@@ -43,6 +43,7 @@ func NewClusterCommand(dingocli *cli.DingoCli) *cobra.Command {
 		NewRestartCommand(dingocli),
 		NewDeployCommand(dingocli),
 		NewUpgradeCommand(dingocli),
+		NewScaleOutCommand(dingocli),
 		NewCleanCommand(dingocli),
 		NewPrecheckCommand(dingocli),
 	)

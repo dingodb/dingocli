@@ -186,6 +186,16 @@ var (
 		nil,
 	)
 
+	// number of disks to spread service replicas over, see variable
+	// service_replica_disk_sequence (0 means no cycling)
+	CONFIG_DISK_COUNT = itemset.insert(
+		KIND_DINGO,
+		"disk_count",
+		REQUIRE_POSITIVE_INTEGER,
+		true,
+		nil,
+	)
+
 	CONFIG_SOURCE_CORE_DIR = itemset.insert(
 		KIND_DINGO,
 		"source_core_dir",
