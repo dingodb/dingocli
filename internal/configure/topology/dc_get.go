@@ -180,6 +180,7 @@ func (dc *DeployConfig) GetDataDir() string {
 	return dc.getString(CONFIG_DATA_DIR)
 }
 func (dc *DeployConfig) GetSeqOffset() int           { return dc.getInt(CONFIG_SEQ_OFFSET) }
+func (dc *DeployConfig) GetDiskCount() int           { return dc.getInt(CONFIG_DISK_COUNT) }
 func (dc *DeployConfig) GetSourceCoreDir() string    { return dc.getString(CONFIG_SOURCE_CORE_DIR) }
 func (dc *DeployConfig) GetTargetCoreDir() string    { return dc.getString(CONFIG_TARGET_CORE_DIR) }
 func (dc *DeployConfig) GetEnv() string              { return dc.getString(CONFIG_ENV) }

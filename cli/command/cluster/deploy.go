@@ -294,6 +294,11 @@ func genDeployPlaybook(dingocli *cli.DingoCli,
 		return nil, errno.ERR_UNSUPPORT_CLUSTER_KIND.F("kind: %s", kind)
 	}
 
+	if len(steps) == 0 {
+		return nil, errno.ERR_UNSUPPORT_CLUSTER_KIND.
+			F("kind: %s, roles: %v", kind, roles)
+	}
+
 	if options.useLocalImage {
 		// remove PULL_IMAGE step
 		for i, item := range steps {
@@ -313,9 +318,10 @@ func genDeployPlaybook(dingocli *cli.DingoCli,
 			role := DEPLOY_FILTER_ROLE[step]
 			config = dingocli.FilterDeployConfigByRole(config, role)
 		}
-		//n := len(config)
-		if DEPLOY_LIMIT_SERVICE[step] > 0 {
-			n := DEPLOY_LIMIT_SERVICE[step]
+		if len(config) == 0 {
+			continue // no deploy config matched (e.g. scale out with partial roles)
+		}
+		if n := DEPLOY_LIMIT_SERVICE[step]; n > 0 && n < len(config) {
 			config = config[:n]
 		}
 
