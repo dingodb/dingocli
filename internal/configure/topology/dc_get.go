@@ -283,6 +283,12 @@ func (dc *DeployConfig) GetDingoInstanceId() int {
 	return dc.getInt(CONFIG_INSTANCE_START_ID)
 }
 
+// SetDingoInstanceId pins the instance id, overriding the one derived from
+// host/replica sequence (which shifts when replicas of a topology change).
+func (dc *DeployConfig) SetDingoInstanceId(id int) {
+	dc.config[CONFIG_INSTANCE_START_ID.key] = id
+}
+
 func (dc *DeployConfig) GetDingoStoreCoordinatorAddr() string {
 	return dc.getString(CONFIG_DINGOSTORE_COORDINATOR_ADDR)
 }

@@ -337,6 +337,9 @@ var (
 	ERR_NO_SERVICES_FOR_MIGRATING                        = EC(332009, "no service for migrating")
 	ERR_REQUIRE_SAME_ROLE_SERVICES_FOR_MIGRATING         = EC(332010, "require same role services for migrating")
 	ERR_REQUIRE_WHOLE_HOST_SERVICES_FOR_MIGRATING        = EC(332011, "require whole host services for migrating")
+	ERR_ADD_SERVICE_WHILE_SCALE_IN_CLUSTER_IS_DENIED     = EC(332012, "add service while scale in cluster is denied")
+	ERR_NO_SERVICES_FOR_SCALE_IN_CLUSTER                 = EC(332013, "no service for scale in cluster")
+	ERR_UNSUPPORT_ROLE_FOR_SCALE_IN_CLUSTER              = EC(332014, "scale in cluster only supports mds services")
 
 	// 340: configure (format.yaml: parse failed)
 	ERR_FORMAT_CONFIGURE_FILE_NOT_EXIST = EC(340000, "format configure file not exits")
