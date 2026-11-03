@@ -117,6 +117,12 @@ func PromptScaleOut() string {
 	return prompt.Build()
 }
 
+func PromptScaleIn() string {
+	prompt := NewPrompt(color.YellowString(PROMPT_TOPOLOGY_CHANGE_NOTICE) + DEFAULT_CONFIRM_PROMPT)
+	prompt.data["operation"] = "scale in cluster"
+	return prompt.Build()
+}
+
 func PromptMigrate() string {
 	prompt := NewPrompt(color.YellowString(PROMPT_TOPOLOGY_CHANGE_NOTICE) + DEFAULT_CONFIRM_PROMPT)
 	prompt.data["operation"] = "migrate services"
