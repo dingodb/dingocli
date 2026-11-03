@@ -533,8 +533,8 @@ github.com/ianlancetaylor/demangle v0.0.0-20210905161508-09a460cdf81d/go.mod h1:
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/jackblack369/minio v0.0.0-20261030062024-fe572ad7f51e h1:utaRDP8vNfG/Ag/970kEMhhF6tGwF651sKSH+uAYrRE=
-github.com/jackblack369/minio v0.0.0-20261030062024-fe572ad7f51e/go.mod h1:r4msbBqFS8wvvTuHDhp+rmxVKfa0+7u6F5gO+yCDsco=
+github.com/jackblack369/minio v0.0.0-20261102093201-391371032b87 h1:nhGTgRyjC6aQpa37XyUX626OzjRvZQbENUozx3KuKhE=
+github.com/jackblack369/minio v0.0.0-20261102093201-391371032b87/go.mod h1:r4msbBqFS8wvvTuHDhp+rmxVKfa0+7u6F5gO+yCDsco=
 github.com/jcmturner/aescts/v2 v2.0.0 h1:9YKLH6ey7H4eDBXW8khjYslgyqG2xZikXP0EQFKrle8=
 github.com/jcmturner/aescts/v2 v2.0.0/go.mod h1:AiaICIRyfYg35RUkr8yESTqvSy7csK90qZ5xfvvsoNs=
 github.com/jcmturner/dnsutils/v2 v2.0.0 h1:lltnkeZGL0wILNvrNiVCR6Ro5PGU/SeBvVO/8c/iPbo=
