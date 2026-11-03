@@ -95,7 +95,36 @@ func getScaleOutServices(dingocli *cli.DingoCli, newData string) ([]*topology.De
 	if len(added) == 0 {
 		return nil, errno.ERR_NO_SERVICES_FOR_SCALE_OUT_CLUSTER
 	}
+	if err = assignScaleOutInstanceIds(dingocli, added); err != nil {
+		return nil, err
+	}
 	return added, nil
+}
+
+// assignScaleOutInstanceIds gives the added services instance ids following the
+// largest id already used by the same role in the committed topology. The
+// default id is derived from host/replica sequence and replica count, so it
+// shifts once replicas are increased and would collide with running services.
+func assignScaleOutInstanceIds(dingocli *cli.DingoCli, added []*topology.DeployConfig) error {
+	oldDcs, err := dingocli.ParseTopologyData(dingocli.ClusterTopologyData())
+	if err != nil {
+		return err
+	}
+	maxIds := map[string]int{}
+	for _, dc := range oldDcs {
+		if id := dc.GetDingoInstanceId(); id > maxIds[dc.GetRole()] {
+			maxIds[dc.GetRole()] = id
+		}
+	}
+	for _, dc := range added {
+		role := dc.GetRole()
+		if _, ok := maxIds[role]; !ok {
+			continue // no running service of this role, keep default ids
+		}
+		maxIds[role]++
+		dc.SetDingoInstanceId(maxIds[role])
+	}
+	return nil
 }
 
 // precheckBeforeScaleOut checks the environment of the added services only.
