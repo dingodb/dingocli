@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.15.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/uuid v1.3.0
-	github.com/jackblack369/minio v0.0.0-20261030062024-fe572ad7f51e
+	github.com/jackblack369/minio v0.0.0-20261102093201-391371032b87
 	github.com/jpillora/longestcommon v0.0.0-20161227235612-adb9d91ee629
 	github.com/kpango/glg v1.6.14
 	github.com/mattn/go-sqlite3 v1.14.16
