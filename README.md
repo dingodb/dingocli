@@ -107,3 +107,45 @@ DINGOFS_ANSIBLE_NET=k8s DINGOFS_INCLUDE_CORDONED=false \
   dingo playbook -i /path/to/region/hosts.py --inventory-user root \
   -l cache_servers --list-hosts
 ```
+
+
+### Host-name labels and regular-expression selectors
+
+Every host's `host` name is also an implicit label, including stored host records
+that already have other labels. This enables single-host selection without
+rewriting an existing host registry.
+
+```bash
+# One host, exact match.
+dingo playbook -i ./hosts.py -l gpu-001 --list-hosts
+
+# Host-name pattern, with anchors for a full match.
+dingo playbook -i ./hosts.py -l 're:^gpu-[0-9]{1,3}$' --list-hosts
+
+# Members of cache_servers whose name matches this pattern.
+dingo playbook -i ./hosts.py -l cache_servers -l '&re:^gpu-' --list-hosts
+
+# Exclude matching hosts from a group.
+dingo playbook config check dingo-cache.service -l cache_servers -l '!re:-003$'
+
+# The same expressions work with the stored host list.
+dingo hosts list -l 're:^gpu-' -l '!re:-003$'
+```
+
+Plain selectors match labels exactly. `re:` enables Go regexp matching against
+any label, including the host name. Regular expressions use substring matching;
+use `^` and `$` when the whole label must match. Includes combine with OR, `!`
+excludes a host when any exclusion matches, and each `&` condition must match
+at least one label on the host. Invalid or empty regular expressions fail before
+inventory execution or remote operations.
+
+Pass each `re:` expression as its own `-l` argument. Its commas and colons are
+part of the expression, so quantifiers such as `{1,3}` work directly. Exact-label
+lists retain the existing separators, commas for playbook commands and colons
+for `hosts list`. Combining an expression inside such a legacy list is rejected;
+use repeated `-l` flags instead.
+
+`literal:` selects an exact label containing separators or a reserved prefix.
+For example, `-l 'literal:hosts-inspect:site-a'` selects the complete scope label
+with `hosts list`, and `-l 'literal:re:something'` selects the literal label
+`re:something`. It can also follow `!` or `&`.

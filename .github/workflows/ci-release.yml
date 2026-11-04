@@ -53,7 +53,7 @@ jobs:
 
       - name: Test dynamic inventory and playbook routing
         # Existing printf-style CLI wrappers trigger unrelated vet diagnostics.
-        run: go test -vet=off ./internal/inventory ./cli/cli ./cli/command
+        run: go test -vet=off ./internal/inventory ./internal/configure/hosts ./cli/cli ./cli/command
 
       - name: Release
         uses: softprops/action-gh-release@v2

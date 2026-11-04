@@ -112,3 +112,35 @@ func TestPreviewWithoutInventoryUsesStoredHosts(t *testing.T) {
 		t.Fatal(output.String())
 	}
 }
+
+func TestDynamicInventoryExactHostAndRegexPreview(t *testing.T) {
+	for _, selectors := range [][]string{{"-l", "fresh"}, {"-l", "re:^fre[a-z]{1,3}$"}, {"-l", "cache_servers", "-l", "&re:^fresh$"}} {
+		t.Run(strings.Join(selectors, " "), func(t *testing.T) {
+			client, script, _ := inventoryFixture(t)
+			cmd := NewPlaybookCommand(client)
+			var output bytes.Buffer
+			cmd.SetOut(&output)
+			cmd.SetErr(&output)
+			args := append([]string{"-i", script, "--list-hosts"}, selectors...)
+			cmd.SetArgs(args)
+			if err := cmd.Execute(); err != nil {
+				t.Fatal(err, output.String())
+			}
+			if !strings.Contains(output.String(), "fresh\t") || strings.Contains(output.String(), "stored\t") {
+				t.Fatal(output.String())
+			}
+		})
+	}
+}
+
+func TestInvalidRegexStopsBeforeInventoryExecution(t *testing.T) {
+	client, script, calls := inventoryFixture(t)
+	cmd := NewPlaybookCommand(client)
+	cmd.SetArgs([]string{"-i", script, "config", "set", "cache.service", "log_level", "INFO", "-l", "re:["})
+	if err := cmd.Execute(); err == nil {
+		t.Fatal("accepted invalid regex")
+	}
+	if _, err := os.Stat(calls); !os.IsNotExist(err) {
+		t.Fatal("ran inventory despite invalid selector")
+	}
+}

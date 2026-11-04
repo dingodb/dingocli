@@ -209,78 +209,14 @@ func ParseHosts(data string) ([]*HostConfig, error) {
 	return hcs, nil
 }
 
-// return true if dropped
-func excludeOne(hc *HostConfig, exclude map[string]bool) bool {
-	if len(exclude) == 0 {
-		return false
-	}
-
-	for _, label := range hc.GetLabels() {
-		if exclude[label] {
-			return true
-		}
-	}
-	return false
-}
-
-// return true if selected
-func includeOne(hc *HostConfig, include map[string]bool) bool {
-	if len(include) == 0 {
-		return true
-	}
-
-	for _, label := range hc.GetLabels() {
-		if include[label] {
-			return true
-		}
-	}
-	return false
-}
-
-// return true if selected
-func intersectOne(hc *HostConfig, intersect map[string]bool) bool {
-	if len(intersect) == 0 {
-		return true
-	}
-
-	exist := map[string]bool{}
-	for _, label := range hc.GetLabels() {
-		if intersect[label] {
-			exist[label] = true
-		}
-	}
-	return len(exist) == len(intersect)
-}
-
-/*
- * pattern         description
- * ---             ---
- * label2:label2   multiple labels: all hosts belong to label <label1> plus all hosts belong to <label2>
- * label2:!label2  excluding labels: all hosts belong to label <label1> except those belong to label <label2>
- * label2:&label2  intersection labels: any hosts belong to label <label1> that are also belong to label <label2>
- */
-func parsePattern(labels []string) (include, exclude, intersect map[string]bool) {
-	include = map[string]bool{}
-	exclude = map[string]bool{}
-	intersect = map[string]bool{}
-	for _, label := range labels {
-		if len(label) == 0 {
-			continue
-		}
-
-		switch label[0] {
-		case '!':
-			exclude[label[1:]] = true
-		case '&':
-			intersect[label[1:]] = true
-		default:
-			include[label] = true
-		}
-	}
-	return
-}
-
+// Filter applies OR includes, any-match excludes, and AND requirements.
+// Selectors are exact by default. re: enables a Go regular expression and
+// literal: escapes a label that starts with a reserved prefix.
 func Filter(data string, labels []string) ([]*HostConfig, error) {
+	include, exclude, required, err := compileSelectors(labels)
+	if err != nil {
+		return nil, err
+	}
 	hcs, err := ParseHosts(data)
 	if err != nil {
 		return nil, err
@@ -288,18 +224,25 @@ func Filter(data string, labels []string) ([]*HostConfig, error) {
 	if len(labels) == 0 {
 		return hcs, nil
 	}
-
 	out := []*HostConfig{}
-	include, exclude, intersect := parsePattern(labels)
 	for _, hc := range hcs {
-		if excludeOne(hc, exclude) {
-			continue
-		} else if !includeOne(hc, include) {
-			continue
-		} else if !intersectOne(hc, intersect) {
+		hostLabels := hc.GetLabels()
+		if matchesAny(exclude, hostLabels) {
 			continue
 		}
-		out = append(out, hc)
+		if len(include) > 0 && !matchesAny(include, hostLabels) {
+			continue
+		}
+		accepted := true
+		for _, selector := range required {
+			if !selector.matches(hostLabels) {
+				accepted = false
+				break
+			}
+		}
+		if accepted {
+			out = append(out, hc)
+		}
 	}
 	return out, nil
 }

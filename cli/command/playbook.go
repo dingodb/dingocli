@@ -186,7 +186,7 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	}
 
 	flags := cmd.Flags()
-	flags.StringSliceVarP(&options.labels, "labels", "l", []string{}, "Specify the host labels")
+	hostconfig.AddLabelFlag(flags, &options.labels, ",")
 	flags.BoolVar(&options.scpMode, "scp", false, "Enable SCP mode to copy files to remote hosts")
 	flags.StringVar(&options.scpTarget, "target", "", "Target path on remote host (used with --scp)")
 	flags.BoolVar(&options.tuneMode, "tune", false, "Enable tune mode to adjust kernel on remote hosts")
@@ -524,7 +524,7 @@ func newPlaybookConfigCommand(currentCli func() *cli.DingoCli) *cobra.Command {
 		},
 		DisableFlagsInUseLine: true,
 	}
-	checkCmd.Flags().StringSliceVarP(&opts.labels, "labels", "l", []string{}, "Specify the host labels")
+	hostconfig.AddLabelFlag(checkCmd.Flags(), &opts.labels, ",")
 
 	getCmd := &cobra.Command{
 		Use:   "get SERVICE PARAM",
@@ -542,7 +542,7 @@ func newPlaybookConfigCommand(currentCli func() *cli.DingoCli) *cobra.Command {
 		},
 		DisableFlagsInUseLine: true,
 	}
-	getCmd.Flags().StringSliceVarP(&opts.labels, "labels", "l", []string{}, "Specify the host labels")
+	hostconfig.AddLabelFlag(getCmd.Flags(), &opts.labels, ",")
 
 	setCmd := &cobra.Command{
 		Use:   "set SERVICE PARAM VALUE",
@@ -560,7 +560,7 @@ func newPlaybookConfigCommand(currentCli func() *cli.DingoCli) *cobra.Command {
 		},
 		DisableFlagsInUseLine: true,
 	}
-	setCmd.Flags().StringSliceVarP(&opts.labels, "labels", "l", []string{}, "Specify the host labels")
+	hostconfig.AddLabelFlag(setCmd.Flags(), &opts.labels, ",")
 
 	cmd.AddCommand(checkCmd, getCmd, setCmd)
 	return cmd
