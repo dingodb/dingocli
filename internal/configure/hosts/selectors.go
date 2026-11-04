@@ -88,12 +88,12 @@ func compileSelectors(values []string) (include, exclude, required []labelSelect
 func AddLabelFlag(flags *pflag.FlagSet, target *[]string, separator string) {
 	flags.StringSliceVarP(target, "labels", "l", []string{}, "Host/label selectors; re:REGEXP enables regex, ! excludes, & requires; repeat -l for expressions")
 	flag := flags.Lookup("labels")
-	flag.Value = &labelFlagValue{Value: flag.Value, slice: flag.Value.(pflag.SliceValue), separator: separator}
+	flag.Value = &labelFlagValue{Value: flag.Value, SliceValue: flag.Value.(pflag.SliceValue), separator: separator}
 }
 
 type labelFlagValue struct {
 	pflag.Value
-	slice     pflag.SliceValue
+	pflag.SliceValue
 	separator string
 	changed   bool
 }
@@ -127,12 +127,12 @@ func (value *labelFlagValue) Set(raw string) error {
 		return err
 	}
 	if !value.changed {
-		if err := value.slice.Replace(fields); err != nil {
+		if err := value.SliceValue.Replace(fields); err != nil {
 			return err
 		}
 	} else {
 		for _, field := range fields {
-			if err := value.slice.Append(field); err != nil {
+			if err := value.SliceValue.Append(field); err != nil {
 				return err
 			}
 		}
