@@ -19,9 +19,11 @@ package command
 // NOTE: playbook under beta version
 import (
 	"fmt"
+	"github.com/dingodb/dingocli/internal/inventory"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/internal/configure/hosts"
@@ -64,6 +66,10 @@ func checkPlaybookOptions(dingocli *cli.DingoCli, options playbookOptions) error
 
 func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	var options playbookOptions
+	var inventoryPath string
+	var inventoryOptions inventory.Options
+	var listHosts bool
+	activeCli := dingocli
 
 	cmd := &cobra.Command{
 		Use:     "playbook PLAYBOOK [ARGS...] [OPTIONS]",
@@ -72,6 +78,12 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 		Example: `Examples:
   # Execute playbook.sh on remote hosts
   $ dingo playbook playbook.sh
+
+  # Discover hosts from an Ansible executable inventory and preview cache nodes
+  $ dingo playbook -i ./hosts-inspect.py --inventory-user root -l cache_servers --list-hosts
+
+  # Use the same dynamic inventory for runtime config queries
+  $ dingo playbook -i ./hosts-inspect.py config check dingo-cache.service -l cache_servers
 
   # Copy local file to remote hosts
   $ dingo playbook --scp --target /tmp/remote.conf local.conf
@@ -84,8 +96,36 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
   $ dingo playbook config get dingo-cache.service log_level
   $ dingo playbook config set dingo-cache.service log_level INFO
   `,
-		Args: cliutil.RequiresMinArgs(1),
+		Args: func(cmd *cobra.Command, args []string) error {
+			if listHosts {
+				return cliutil.NoArgs(cmd, args)
+			}
+			return cliutil.RequiresMinArgs(1)(cmd, args)
+		},
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			activeCli = dingocli
+			if inventoryPath == "" {
+				for _, name := range []string{"inventory-user", "inventory-port", "inventory-private-key", "inventory-timeout"} {
+					if cmd.Flags().Changed(name) {
+						return fmt.Errorf("--%s requires --inventory", name)
+					}
+				}
+				return nil
+			}
+			if cmd.Flags().Changed("inventory-port") && inventoryOptions.Port == 0 {
+				return fmt.Errorf("inventory SSH port must be positive")
+			}
+			data, err := inventory.Load(cmd.Context(), inventoryPath, inventoryOptions, cmd.ErrOrStderr())
+			if err != nil {
+				return err
+			}
+			activeCli, err = dingocli.WithHosts(data)
+			return err
+		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
+			if listHosts {
+				return nil
+			}
 			if options.tuneMode {
 				if len(args) < 2 {
 					return fmt.Errorf("--tune flag requires key and value arguments")
@@ -102,11 +142,11 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 					return fmt.Errorf("--scp flag requires a target path on remote host")
 				}
 
-				return checkPlaybookOptions(dingocli, options)
+				return checkPlaybookOptions(activeCli, options)
 			}
 
 			// Script execution mode
-			if len(args) == 1 {
+			if len(args) == 1 && !utils.PathExist(options.filepath) {
 				// generate any.sh script to /tmp/any.sh
 				anyScript := path.Join("/tmp", "any.sh")
 				if !utils.PathExist(anyScript) {
@@ -118,16 +158,29 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 			}
 			options.filepath = args[0]
 			options.args = args[1:]
-			return checkPlaybookOptions(dingocli, options)
+			return checkPlaybookOptions(activeCli, options)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if listHosts {
+				selected, err := hostconfig.Filter(activeCli.Hosts(), options.labels)
+				if err != nil {
+					return err
+				}
+				if len(selected) == 0 {
+					return fmt.Errorf("no hosts match the requested labels")
+				}
+				for _, host := range selected {
+					fmt.Fprintf(cmd.OutOrStdout(), "%s\t%s\t%s\t%d\t%s\n", host.GetHost(), host.GetHostname(), host.GetUser(), host.GetSSHPort(), strings.Join(host.GetLabels(), ","))
+				}
+				return nil
+			}
 			if options.tuneMode {
-				return runTuneMode(dingocli, options)
+				return runTuneMode(activeCli, options)
 			}
 			if options.scpMode {
-				return runScpMode(dingocli, options)
+				return runScpMode(activeCli, options)
 			}
-			return runPlaybook(dingocli, options)
+			return runPlaybook(activeCli, options)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -138,7 +191,14 @@ func NewPlaybookCommand(dingocli *cli.DingoCli) *cobra.Command {
 	flags.StringVar(&options.scpTarget, "target", "", "Target path on remote host (used with --scp)")
 	flags.BoolVar(&options.tuneMode, "tune", false, "Enable tune mode to adjust kernel on remote hosts")
 
-	cmd.AddCommand(newPlaybookConfigCommand(dingocli))
+	persistent := cmd.PersistentFlags()
+	persistent.StringVarP(&inventoryPath, "inventory", "i", "", "Executable Ansible inventory script (called with --list for this invocation)")
+	persistent.StringVar(&inventoryOptions.User, "inventory-user", "", "Override inventory SSH user")
+	persistent.IntVar(&inventoryOptions.Port, "inventory-port", 0, "Override inventory SSH port")
+	persistent.StringVar(&inventoryOptions.PrivateKey, "inventory-private-key", "", "Override inventory SSH private key path")
+	persistent.DurationVar(&inventoryOptions.Timeout, "inventory-timeout", time.Minute, "Dynamic inventory execution and resolution timeout")
+	flags.BoolVar(&listHosts, "list-hosts", false, "List selected hosts without running a remote operation")
+	cmd.AddCommand(newPlaybookConfigCommand(func() *cli.DingoCli { return activeCli }))
 
 	return cmd
 }
@@ -258,7 +318,7 @@ func runScpMode(dingocli *cli.DingoCli, options playbookOptions) error {
 	}
 
 	if len(hcs) == 0 {
-		return fmt.Errorf("no hosts configured. Use 'dingo hosts add' to add hosts first")
+		return fmt.Errorf("no hosts match the requested labels")
 	}
 
 	dingocli.WriteOutln("SCP Mode: Copying %s to %s on %d host(s)...",
@@ -289,7 +349,7 @@ func runTuneMode(dingocli *cli.DingoCli, options playbookOptions) error {
 	}
 
 	if len(hcs) == 0 {
-		return fmt.Errorf("no hosts configured. Use 'dingo hosts add' to add hosts first")
+		return fmt.Errorf("no hosts match the requested labels")
 	}
 
 	dingocli.WriteOutln("Tune Mode: Setting %s=%s on %d host(s)...",
@@ -319,6 +379,9 @@ func runPlaybook(dingocli *cli.DingoCli, options playbookOptions) error {
 		}
 	}
 
+	if len(hcs) == 0 {
+		return fmt.Errorf("no hosts match the requested labels")
+	}
 	retC = make(chan result)
 	wg.Add(len(hcs))
 	go receiver(dingocli, len(hcs))
@@ -420,7 +483,7 @@ func runConfigOp(dingocli *cli.DingoCli, opts configOptions, banner, script stri
 	}
 
 	if len(hcs) == 0 {
-		return fmt.Errorf("no hosts configured. Use 'dingo hosts add' to add hosts first")
+		return fmt.Errorf("no hosts match the requested labels")
 	}
 
 	dingocli.WriteOutln("%s on %d host(s)...", banner, len(hcs))
@@ -436,12 +499,12 @@ func runConfigOp(dingocli *cli.DingoCli, opts configOptions, banner, script stri
 	return nil
 }
 
-func newPlaybookConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
+func newPlaybookConfigCommand(currentCli func() *cli.DingoCli) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "config",
 		Short: "Manage service runtime config via brpc /flags HTTP endpoint",
 		Args:  cliutil.NoArgs,
-		RunE:  cliutil.ShowHelp(dingocli.Err()),
+		RunE:  cliutil.ShowHelp(currentCli().Err()),
 	}
 
 	var opts configOptions
@@ -457,7 +520,7 @@ func newPlaybookConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
 			service := args[0]
 			script := buildConfigScript("list", service, "", "")
 			banner := fmt.Sprintf("Listing %s flags", color.CyanString(service))
-			return runConfigOp(dingocli, opts, banner, script)
+			return runConfigOp(currentCli(), opts, banner, script)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -475,7 +538,7 @@ func newPlaybookConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
 			script := buildConfigScript("get", service, param, "")
 			banner := fmt.Sprintf("Getting %s %s",
 				color.CyanString(service), color.CyanString(param))
-			return runConfigOp(dingocli, opts, banner, script)
+			return runConfigOp(currentCli(), opts, banner, script)
 		},
 		DisableFlagsInUseLine: true,
 	}
@@ -493,7 +556,7 @@ func newPlaybookConfigCommand(dingocli *cli.DingoCli) *cobra.Command {
 			script := buildConfigScript("set", service, param, value)
 			banner := fmt.Sprintf("Setting %s %s=%s",
 				color.CyanString(service), color.CyanString(param), color.CyanString(value))
-			return runConfigOp(dingocli, opts, banner, script)
+			return runConfigOp(currentCli(), opts, banner, script)
 		},
 		DisableFlagsInUseLine: true,
 	}
