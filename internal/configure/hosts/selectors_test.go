@@ -92,6 +92,9 @@ func TestLabelFlagsPreserveRegexCommasAndLegacySeparators(t *testing.T) {
 			flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
 			var selectors []string
 			AddLabelFlag(flags, &selectors, separator)
+			if _, ok := flags.Lookup("labels").Value.(pflag.SliceValue); !ok {
+				t.Fatal("lost string-slice interface")
+			}
 			args := []string{"-l", "cache_servers" + separator + "!test", "-l", "&re:^gpu-[0-9]{1,3}$", "-l", "literal:owner:region"}
 			if err := flags.Parse(args); err != nil {
 				t.Fatal(err)
