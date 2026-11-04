@@ -17,8 +17,6 @@
 package hosts
 
 import (
-	"strings"
-
 	"github.com/dingodb/dingocli/cli/cli"
 	"github.com/dingodb/dingocli/internal/configure/hosts"
 	"github.com/dingodb/dingocli/internal/tui"
@@ -28,7 +26,7 @@ import (
 
 type listOptions struct {
 	verbose bool
-	labels  string
+	labels  []string
 }
 
 func NewListCommand(dingocli *cli.DingoCli) *cobra.Command {
@@ -47,7 +45,7 @@ func NewListCommand(dingocli *cli.DingoCli) *cobra.Command {
 
 	flags := cmd.Flags()
 	flags.BoolVarP(&options.verbose, "verbose", "v", false, "Verbose output for hosts")
-	flags.StringVarP(&options.labels, "labels", "l", "", "Specify the host labels")
+	hosts.AddLabelFlag(flags, &options.labels, ":")
 
 	return cmd
 }
@@ -57,8 +55,7 @@ func runList(dingocli *cli.DingoCli, options listOptions) error {
 	var err error
 	data := dingocli.Hosts()
 	if len(data) > 0 {
-		labels := strings.Split(options.labels, ":")
-		hcs, err = hosts.Filter(data, labels) // filter hosts
+		hcs, err = hosts.Filter(data, options.labels) // filter hosts
 		if err != nil {
 			return err
 		}

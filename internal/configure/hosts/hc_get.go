@@ -69,10 +69,13 @@ func (hc *HostConfig) GetBecomeUser() string     { return hc.getString(CONFIG_BE
 func (hc *HostConfig) GetEnvs() []string         { return hc.envs }
 
 func (hc *HostConfig) GetLabels() []string {
-	if len(hc.labels) == 0 {
-		return []string{hc.GetHost()}
+	labels := append([]string{}, hc.labels...)
+	for _, label := range labels {
+		if label == hc.GetHost() {
+			return labels
+		}
 	}
-	return hc.labels
+	return append(labels, hc.GetHost())
 }
 
 func (hc *HostConfig) GetUser() string {
