@@ -51,6 +51,10 @@ jobs:
           shortCommitId=${commitId:0:7}
           echo "${shortCommitId}" > bin/commit_id
 
+      - name: Test dynamic inventory and playbook routing
+        # Existing printf-style CLI wrappers trigger unrelated vet diagnostics.
+        run: go test -vet=off ./internal/inventory ./cli/cli ./cli/command
+
       - name: Release
         uses: softprops/action-gh-release@v2
         if: ${{ github.event_name == 'push'}}

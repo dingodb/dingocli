@@ -284,6 +284,21 @@ func (dingocli *DingoCli) ClusterTopologyData() string       { return dingocli.c
 func (dingocli *DingoCli) ClusterPoolData() string           { return dingocli.clusterPoolData }
 func (dingocli *DingoCli) Monitor() storage.Monitor          { return dingocli.monitor }
 
+// WithHosts creates an invocation-local host view without updating stored hosts.
+func (dingocli *DingoCli) WithHosts(data string) (*DingoCli, error) {
+	configs, err := hosts.ParseHosts(data)
+	if err != nil {
+		return nil, err
+	}
+	if len(configs) == 0 {
+		return nil, fmt.Errorf("dynamic inventory selected no hosts")
+	}
+	scoped := *dingocli
+	scoped.hosts = data
+	scoped.memStorage = utils.NewSafeMap()
+	return &scoped, nil
+}
+
 func (dingocli *DingoCli) GetHost(host string) (*hosts.HostConfig, error) {
 	if len(dingocli.Hosts()) == 0 {
 		return nil, errno.ERR_HOST_NOT_FOUND.
