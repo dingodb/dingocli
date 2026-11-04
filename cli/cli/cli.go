@@ -17,6 +17,7 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -467,11 +468,20 @@ func (dingocli *DingoCli) CheckHost(host string) error {
 	return err
 }
 
-// writer for cobra command error
+// Write handles Cobra errors and raw diagnostics using the io.Writer contract.
 func (dingocli *DingoCli) Write(p []byte) (int, error) {
-	// trim prefix which generate by cobra
-	p = p[len(cliutil.PREFIX_COBRA_COMMAND_ERROR):]
-	return dingocli.WriteOut(string(p))
+	// Subprocess stderr also reaches this writer through cmd.ErrOrStderr().
+	// Only strip an actual Cobra prefix; arbitrary bytes may be UTF-8 or short.
+	payload := bytes.TrimPrefix(p, []byte(cliutil.PREFIX_COBRA_COMMAND_ERROR))
+	consumedPrefix := len(p) - len(payload)
+	// Diagnostics are data, not a printf format string (they may contain '%').
+	n, err := dingocli.out.Write(payload)
+	if n < len(payload) && err == nil {
+		err = io.ErrShortWrite
+	}
+	// Report consumed INPUT bytes, including a deliberately stripped prefix.
+	// Returning the shorter output length makes os/exec fail with short write.
+	return consumedPrefix + n, err
 }
 
 func (dingocli *DingoCli) WriteOut(format string, a ...interface{}) (int, error) {
