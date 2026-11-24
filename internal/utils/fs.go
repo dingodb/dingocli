@@ -18,6 +18,7 @@ package utils
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"strings"
@@ -31,6 +32,23 @@ func CheckMountPoint(mountPoint string) error {
 		return fmt.Errorf("%s: is not an absolute path", mountPoint)
 	}
 	return nil
+}
+
+// GetLocalIPSet returns the set of IP addresses assigned to this host.
+// It is used to tell which mds mountpoint records were created by clients
+// running on this host.
+func GetLocalIPSet() map[string]bool {
+	ips := map[string]bool{"127.0.0.1": true}
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return ips
+	}
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok {
+			ips[ipNet.IP.String()] = true
+		}
+	}
+	return ips
 }
 
 // get mountPoint inode

@@ -18,7 +18,6 @@ package gateway
 
 import (
 	"fmt"
-	"net"
 	"os"
 
 	"github.com/dingodb/dingocli/cli/cli"
@@ -204,15 +203,5 @@ func findMountpoint(cmd *cobra.Command) (string, error) {
 }
 
 func localIPSet() map[string]bool {
-	ips := map[string]bool{"127.0.0.1": true}
-	addrs, err := net.InterfaceAddrs()
-	if err != nil {
-		return ips
-	}
-	for _, addr := range addrs {
-		if ipNet, ok := addr.(*net.IPNet); ok {
-			ips[ipNet.IP.String()] = true
-		}
-	}
-	return ips
+	return utils.GetLocalIPSet()
 }
