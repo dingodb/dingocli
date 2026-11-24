@@ -572,6 +572,18 @@ func GetMDSAddrSlice(cmd *cobra.Command) ([]string, error) {
 	return addrslice, nil
 }
 
+// IsMDSAddrSet reports whether an mds address was configured explicitly,
+// either by the command line flag or by the configuration file. Commands use
+// it to decide whether a best-effort mds operation should be attempted at all,
+// so they do not block on the default mds address when none is configured.
+func IsMDSAddrSet(cmd *cobra.Command) bool {
+	if flag := cmd.Flag(DINGOFS_MDSADDR); flag != nil && flag.Changed {
+		return true
+	}
+
+	return viper.IsSet(VIPER_DINGOFS_MDSADDR)
+}
+
 // check fsid and fsname
 func GetFsInfoFlagValue(cmd *cobra.Command) (uint32, string, error) {
 	var fsId uint32
