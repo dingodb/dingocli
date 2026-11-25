@@ -17,10 +17,12 @@
 package fs
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 
 	"github.com/dingodb/dingocli/cli/cli"
@@ -115,9 +117,19 @@ func runUmuont(cmd *cobra.Command, dingocli *cli.DingoCli, options umountOptions
 				fmt.Errorf("invalid mountpoint: %s", options.mountpoint))
 		case err == syscall.EPERM:
 			// use fusermount3  to umount
-			umountErr := runFuseumount(options)
+			output, umountErr := runFuseumount(options)
 			if umountErr != nil {
-				return fmt.Errorf("error unmounting: %v", umountErr)
+				notMountedErr := fmt.Errorf("error unmounting: %v", umountErr)
+				if output != "" {
+					notMountedErr = fmt.Errorf("error unmounting: %s: %v", output, umountErr)
+				}
+				// fusermount3 reports "not found in /etc/mtab" when the mount
+				// is already gone. If mountinfo confirms that, reconcile the
+				// stale mds record instead of failing.
+				if !utils.IsMountPoint(options.mountpoint) {
+					return reconcileStaleMountPoint(cmd, dingocli, options, notMountedErr)
+				}
+				return notMountedErr
 			}
 		case err == syscall.EBUSY:
 			return fmt.Errorf("mountpoint %s is busy, try umount with lazy option", options.mountpoint)
@@ -161,7 +173,8 @@ func reconcileStaleMountPoint(cmd *cobra.Command, dingocli *cli.DingoCli, option
 		return fmt.Errorf("%v (failed to remove the stale mountpoint from mds: %v)", notMountedErr, err)
 	}
 	if !removed {
-		return notMountedErr
+		return fmt.Errorf("%v (no matching mountpoint found in mds, use --client-id/--fsname to select it)",
+			notMountedErr)
 	}
 
 	dingocli.WriteOutln("%s is not mounted locally, removed its stale mountpoint from mds", options.mountpoint)
@@ -367,18 +380,21 @@ func umountFsFromMds(cmd *cobra.Command, fsName, clientId string) error {
 	return nil
 }
 
-func runFuseumount(options umountOptions) error {
-
-	var oscmd *exec.Cmd
-
+// runFuseumount runs fusermount3 and returns its combined output, so callers
+// can decide whether to surface it (the command is already unmounted when the
+// stale mountpoint is reconciled).
+func runFuseumount(options umountOptions) (string, error) {
 	args := []string{"-u", options.mountpoint}
 	if options.lazy {
 		args = append(args, "-z")
 	}
-	oscmd = exec.Command("fusermount3", args...)
-	oscmd.Stderr = os.Stderr
-	oscmd.Stdout = os.Stdout
 
-	return oscmd.Run()
+	var output bytes.Buffer
+	oscmd := exec.Command("fusermount3", args...)
+	oscmd.Stdout = &output
+	oscmd.Stderr = &output
 
+	err := oscmd.Run()
+
+	return strings.TrimSpace(output.String()), err
 }

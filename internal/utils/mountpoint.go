@@ -45,6 +45,35 @@ func GetDingoFSMountPoints() ([]*mountinfo.MountInfo, error) {
 	return dingofs_mountpoints, nil
 }
 
+// IsMountPoint reports whether path is currently a mountpoint on this host,
+// according to /proc/self/mountinfo. It is used to tell "already unmounted"
+// apart from "failed to unmount" before cleaning up stale metadata.
+func IsMountPoint(path string) bool {
+	mountPoints, err := mountinfo.GetMountInfo()
+	if err != nil {
+		return false
+	}
+
+	candidates := map[string]struct{}{}
+	add := func(p string) {
+		if p != "" {
+			candidates[filepath.Clean(p)] = struct{}{}
+		}
+	}
+	add(AbsPath(path))
+	if resolved, err := filepath.EvalSymlinks(path); err == nil {
+		add(AbsPath(resolved))
+	}
+
+	for _, mountPoint := range mountPoints {
+		if _, ok := candidates[filepath.Clean(mountPoint.MountPoint)]; ok {
+			return true
+		}
+	}
+
+	return false
+}
+
 // make sure path' abs path start with mountpoint.MountPoint
 func Path2DingofsPath(path string, mountpoint *mountinfo.MountInfo) string {
 	path, _ = filepath.Abs(path)
